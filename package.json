@@ -1,0 +1,22 @@
+{
+  "name": "SignalK_raspberry_MCS",
+  "author": "Thomas Gersmann / GeDaD",
+  "description": "SignalK Plugin to provide MCS functionality to SignalK",
+  "license": "MIT",
+  "homepage": "https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS/blob/master/README.md",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": [
+    "signalk-node-server-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS/issues"
+  },
+  "dependencies": {
+    "bme280-sensor": "0.1.6"
+  }
+}
