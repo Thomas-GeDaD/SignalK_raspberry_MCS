@@ -1,5 +1,7 @@
 const fs = require('fs')
+var Gpio = require('onoff').Gpio;
 var  ttyinterfaces = [];
+
 
 var entry1= "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600"
 var entry2= "dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25\ndtoverlay=spi-bcm2835-overlay"
@@ -7,6 +9,7 @@ var entry3= "sudo sh -c \"echo '#physical can interfaces\nallow-hotplug can0\nif
 
 module.exports = function (app) {
   let plugin = {}
+  let timer = null
 
   plugin.id = 'SignalK_raspberry_MCS'
   plugin.name = 'Raspberry_MCS Plugin'
@@ -65,7 +68,7 @@ module.exports = function (app) {
       "active": {
         "type": "boolean",
         "title": "Active"
-      },
+        },
   
         "information1":{
         "description":"load the tty overlays for use the serial (NMEA0183) inputs to config.txt:",
@@ -73,14 +76,14 @@ module.exports = function (app) {
         "title": "How to setup (enter this comands to the comandline)",
         "default": `${checksc16is752()}`,
         "readOnly": true
-      },
+        },
         "information2":{
         "description":"load the can interface (NMEA2000) to config.txt:",
         "type": "string",
         "title": " ",
         "default": `${checkmcp2515()}`,
         "readOnly": true
-      },
+        },
         "information3":{
         "description":"load the can interface to interface.d:",
         "type": "string",
@@ -92,18 +95,41 @@ module.exports = function (app) {
         "type": "string",
         "title": "Availible tty (nmea0183) interfaces of the MCS-Board:",
         "enum": ttyinterfaces
-      }
+        },
+        "information5":{
+        "description":"after change something below, restart your pi to make changes work:",
+        "type": "string",
+        "title": " ",
+        "default": "sudo reboot",
+        "readOnly": true
+        }
       }}
   )
 
 
 
   plugin.start = function (options) {
-   //script for autoshutdown
-  plugin.stop = function () {
-
+    var asdstate = new Gpio(5, 'in');
+    //script for autoshutdown
+    function checkasd(){
+        var asd = asdstate.readSync()
+        if (asd==0 && options.active){
+         console.log("MCSshutdown") //add code for shutdown
+         }}
+    
+    if (asdstate.readSync()==1){
+    timer = setInterval(checkasd, 3000);
     }
+    }
+
+  plugin.stop = function () {
+    if(timer){
+        clearInterval(timer)}
+    try {
+        asdstate.unexport()}
+    catch { console.log("Info: no asdstate working")}
+  
   }
 
   return plugin
-        }
+}
