@@ -4,7 +4,9 @@ var  ttyinterfaces = [];
 
 
 var entry1= "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600\\ndtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600\\ndtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600"
+var entry1_1= "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600"
 var entry2= "dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25\\ndtoverlay=spi-bcm2835-overlay"
+var entry2_2= "dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25\ndtoverlay=spi-bcm2835-overlay"
 var entry3= "sudo sh -c \"echo '#physical can interfaces\\nallow-hotplug can0\\niface can0 can static\\nbitrate 250000\\ndown /sbin/ip link set $IFACE down\\nup /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0\""
 
 module.exports = function (app) {
@@ -18,12 +20,11 @@ module.exports = function (app) {
 
   //read config.txt entrys
   data = fs.readFileSync('/boot/config.txt', 'utf8');
-  console.log(data)
   
   //check sc16is752 config.txt entrys 
   function checksc16is752(){
     var sc16is752
-  if (data.indexOf(entry1)==-1){
+  if (data.indexOf(entry1_1)==-1){
         sc16is752 = `sudo sh -c \"echo '${entry1}' >> /boot/config.txt\"`
     }else{
         sc16is752 = "entrys already created. You have nothing to do ;-)"
@@ -32,8 +33,7 @@ module.exports = function (app) {
 
   //check mcp2515 config.txt entrys   
   function checkmcp2515(){
-    var mcp2515
-    if (data.indexOf(entry2)==-1){
+    if (data.indexOf(entry2_2)==-1){
       return  `sudo sh -c \"echo '${entry2}' >> /boot/config.txt\"`
     }else{
       return  "entrys already created. You have nothing to do ;-)"
@@ -57,7 +57,7 @@ module.exports = function (app) {
 
     function check_ttydev(item){
       if (item.includes("ttySC")){
-      //console.log(item)
+      console.log(item)
           ttyinterfaces.push(item)
       }
   }
