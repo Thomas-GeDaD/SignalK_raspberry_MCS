@@ -1,117 +1,109 @@
+const fs = require('fs')
+var  ttyinterfaces = [];
 
-const BME280 = require('bme280-sensor')
+var entry1= "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600\ndtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600"
+var entry2= "dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25\ndtoverlay=spi-bcm2835-overlay"
+var entry3= "sudo sh -c \"echo '#physical can interfaces\nallow-hotplug can0\niface can0 can static\nbitrate 250000\ndown /sbin/ip link set $IFACE down\nup /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0\""
 
 module.exports = function (app) {
-  let timer = null
   let plugin = {}
 
   plugin.id = 'SignalK_raspberry_MCS'
   plugin.name = 'Raspberry_MCS Plugin'
   plugin.description = 'SignalK Plugin to provide MCS functionality to SignalK'
 
-  plugin.schema = {
-    type: 'object',
-    properties: {
-      rate: {
-        title: "Reading Rate",
-        type: 'number',
-        default: 60
-      },
-      path: {
-        type: 'string',
-        title: 'SignalK Path',
-        description: 'This is used to build the path in Signal K. It will be appended to \'environment\'',
-        default: 'test.string'
-      },
-      i2c_bus: {
-        type: 'integer',
-        title: 'I2C bus number',
-        default: 1,
-      },
-      i2c_address: {
-        type: 'string',
-        title: 'I2C address',
-        default: '0x77',
-      },
+  //read config.txt entrys
+  const data = fs.readFileSync('/boot/config.txt', 'utf8');
+  
+  //check sc16is752 config.txt entrys 
+  function checksc16is752(){
+    var sc16is752
+  if (data.indexOf(entry1)==-1){
+        sc16is752 = `sudo sh -c \"echo ${entry1} ' >> /boot/config.txt\"`
+    }else{
+        sc16is752 = "entrys already created. You have nothing to do ;-)"
     }
+    return sc16is752}
+
+  //check mcp2515 config.txt entrys   
+  function checkmcp2515(){
+    var mcp2515
+    if (data.indexOf(entry2)==-1){
+      return  `sudo sh -c \"echo ${entry2} ' >> /boot/config.txt\"`
+    }else{
+      return  "entrys already created. You have nothing to do ;-)"
+    }
+    } 
+    //check can0 interface in interfaces.d
+    function checkcan0if(){
+        var can0 = fs.readdirSync('/etc/network/interfaces.d/')
+        if (can0.includes("can0")) {
+            return "can 0 is already loaded to /etc/network/interfaces.d/"
+        }
+        else {
+            return  entry3
+        }
+    }
+
+    //read tty interfaces
+    var files = fs.readdirSync('/dev/');
+    files.forEach(check_ttydev);
+
+    function check_ttydev(item){
+      if (item.includes("ttySC")){
+      //console.log(item)
+          ttyinterfaces.push(item)
+      }
   }
+
+
+  plugin.schema =  () => ({
+    "title": "Enable autoshutdown.",
+    "description": "If you enable the autoshutdown, The Pi automaticly shuts down after \"+12V enable\" switch to low.",
+    "type": "object",
+    "properties": {
+      "active": {
+        "type": "boolean",
+        "title": "Active"
+      },
+  
+        "information1":{
+        "description":"load the tty overlays for use the serial (NMEA0183) inputs to config.txt:",
+        "type": "string",
+        "title": "How to setup (enter this comands to the comandline)",
+        "default": `${checksc16is752()}`,
+        "readOnly": true
+      },
+        "information2":{
+        "description":"load the can interface (NMEA2000) to config.txt:",
+        "type": "string",
+        "title": " ",
+        "default": `${checkmcp2515()}`,
+        "readOnly": true
+      },
+        "information3":{
+        "description":"load the can interface to interface.d:",
+        "type": "string",
+        "title": " ",
+        "default": `${checkcan0if()}`,
+        "readOnly": true
+        },
+        "information4":{
+        "type": "string",
+        "title": "Availible tty (nmea0183) interfaces of the MCS-Board:",
+        "enum": ttyinterfaces
+      }
+      }}
+  )
+
+
 
   plugin.start = function (options) {
-    
-    function createDeltaMessage (temperature, humidity, pressure) {
-      return {
-        'context': 'vessels.' + app.selfId,
-        'updates': [
-          {
-            'source': {
-              'label': plugin.id
-            },
-            'timestamp': (new Date()).toISOString(),
-            'values': [
-              {
-                'path': 'environment.' + options.path + '.temperature',
-                'value': temperature
-              }, {
-                'path': 'environment.' + options.path + '.humidity',
-                'value': humidity
-              }, {
-                'path': 'environment.' + options.path + '.pressure',
-                'value': pressure
-              }
-            ]
-          }
-        ]
-      }
-    }
-
-    // The BME280 constructor options are optional.
-    //
-    const bmeoptions = {
-      i2cBusNo   : options.i2c_bus || 1, // defaults to 1
-      i2cAddress : Number(options.i2c_address || '0x77'), // defaults to 0x77
-    };
-
-    const bme280 = new BME280(bmeoptions);
-
-    // Read BME280 sensor data
-    function readSensorData() {
-  	  bme280.readSensorData()
-          .then((data) => {
-        // temperature_C, pressure_hPa, and humidity are returned by default.
-        temperature = data.temperature_C + 273.15;
-        pressure = data.pressure_hPa * 100;
-        humidity = data.humidity;
-
-        //console.log(`data = ${JSON.stringify(data, null, 2)}`);
-
-        // create message
-        var delta = createDeltaMessage(temperature, humidity, pressure)
-
-        // send temperature
-        app.handleMessage(plugin.id, delta)
-
-      })
-      .catch((err) => {
-        console.log(`BME280 read error: ${err}`);
-      });
-    }
-
-    bme280.init()
-        .then(() => {
-      console.log('BME280 initialization succeeded');
-      readSensorData();
-    })
-    .catch((err) => console.error(`BME280 initialization failed: ${err} `));
-
-    timer = setInterval(readSensorData, options.rate * 1000);
-  }
-
+   //script for autoshutdown
   plugin.stop = function () {
-    if(timer){
-      clearInterval(timer);
-      timeout = null;
+
     }
   }
 
   return plugin
-}
+        }
