@@ -17,6 +17,7 @@
     "url": "https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS/issues"
   },
   "dependencies": {
-    "bme280-sensor": "0.1.6"
+    "onoff": "6.0.0"
+
   }
 }
