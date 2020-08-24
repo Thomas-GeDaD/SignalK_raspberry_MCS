@@ -117,7 +117,7 @@ module.exports = function (app) {
          console.log("MCSshutdown") //add code for shutdown
          }}
     
-    if (asdstate.readSync()==1){
+    if (asdstate.readSync()==1 && options.active){
     timer = setInterval(checkasd, 3000);
     }
     }
