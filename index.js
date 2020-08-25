@@ -66,7 +66,6 @@ module.exports = function (app) {
 
     function check_ttydev(item){
       if (item.includes("ttySC")){
-      console.log(item)
           ttyinterfaces.push(item)
       }
   }
