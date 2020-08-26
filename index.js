@@ -135,6 +135,11 @@ module.exports = function (app) {
                 "description": `${sudoInstall()}`,
                 "type": "null"
             }}},
+            "rate": {
+              "title": "Sample Rate 1-wire Sensor (in seconds)",
+              "type": "number",
+              "default": 30
+            },
         "devices": {     
             "type": "array",
             "title": "1-Wire Sensors (DS18B20)",
@@ -160,10 +165,6 @@ module.exports = function (app) {
               }
             }
         }
-        
-       
-    
-    
        }
     }
   )
@@ -197,7 +198,7 @@ module.exports = function (app) {
             app.handleMessage(plugin.id, delta)
         }
     }
-    timerreadds18b20 = setInterval(readds18b20,3000)
+    timerreadds18b20 = setInterval(readds18b20,1000)
     }
 
   plugin.stop = function () {
