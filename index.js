@@ -2,6 +2,7 @@ const { exec } = require("child_process");
 const fs = require('fs')
 var Gpio = require('onoff').Gpio;
 var  ttyinterfaces = [];
+var sensors = [];
 
 module.exports = function (app) {
   let plugin = {}
@@ -59,8 +60,6 @@ module.exports = function (app) {
         return error
     }
     //read tty interfaces
-
-
     var files = fs.readdirSync('/dev/');
     files.forEach(check_ttydev);
 
@@ -68,29 +67,76 @@ module.exports = function (app) {
       if (item.includes("ttySC")){
           ttyinterfaces.push(item)
       }
-  }
+    }
 
-
-  plugin.schema =  () => ({
-    "title": "Enable autoshutdown.",
-    "description": "If you enable the autoshutdown, The Pi automaticly shuts down after \"+12V enable\" switch to low.",
-    "type": "object",
-    "properties": {
-      "active": {
-        "type": "boolean",
-        "title": "Active"
-        },
-        "information1":{
-            "title": "Availible tty (nmea0183) interfaces of the MCS-Board:",
-            "description":`${ttyinterfaces}`,
-            "type": "null"
-        },
-        "information2":{
-            "title": "If there is an error: (see also Server log)",
-            "description":`${sudoInstall()}`,
-            "type": "null"
+    //read 1-wire sensors
+    var sensorx = fs.readdirSync('/sys/bus/w1/devices/'); ///sys/bus/w1/devices/
+    sensorx.forEach(checkid);
+    function checkid(item){
+        if (item.slice(0,2)==28){
+            sensors.push(item)
         }
-      }}
+    }
+
+
+  plugin.schema =  () => (
+    {
+        "title": "Enable autoshutdown.",
+        "description": "If you enable the autoshutdown, The Pi automaticly shuts down after \"+12V enable\" switch to low.",
+        "type": "object",
+        "required": ["oneWireId"],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+            },
+        "setup":{
+          "title": "Setup information",
+          "type": "object",
+          "properties":{
+            "information1":{
+                "title": "Availible tty (nmea0183) interfaces of the MCS-Board:",
+                "description":`${ttyinterfaces}`,
+                "type": "null"
+            },
+            "information2":{
+                "title": "If there is an error: (see also Server log):",
+                "description": `${sudoInstall()}`,
+                "type": "null"
+            }}},
+        
+        "devices": {
+            
+            "type": "array",
+            "title": "1-Wire Sensors (DS18B20)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "oneWireId": {
+                  "type": "string",
+                  "title": "Sensor Id",
+                  "enum": sensors
+                },
+                "locationName": {
+                  "type": "string",
+                  "title": "Location name",
+                  "default": "Engine room"
+                },
+                "key": {
+                  "type": "string",
+                  "title": "Signal K Key",
+                  "description": "This is used to build the path in Signal K. It will be appended to environment",
+                  "enum": ["inside.engineroom.temperature"]
+                }
+              }
+            }
+        }
+        
+       
+    
+    
+       }
+    }
   )
 
 
