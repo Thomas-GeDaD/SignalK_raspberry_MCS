@@ -1,6 +1,5 @@
 /*
  * Copyright 2020 Thomas Gersmann - GeDaD <t.gersmann@gedad.de>
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +14,16 @@
 
 const fs = require('fs');
 var Gpio = require('onoff').Gpio;
+
 var  ttyinterfaces = [];
 var sensors = [];
 var speckeys =["environment.inside.engineRoom.temperature","environment.inside.freezer.temperature","environment.inside.heating.temperature","environment.inside.mainCabin.temperature","environment.inside.refrigerator.temperature","environment.inside.temperature","environment.outside.apparentWindChillTemperature","environment.outside.dewPointTemperature","environment.outside.heatIndexTemperature","environment.outside.temperature","environment.outside.theoreticalWindChillTemperature","environment.water.baitWell.temperature","environment.water.liveWell.temperature","environment.water.temperature,propulsion.*.coolantTemperature","propulsion.*.exhaustTemperature","propulsion.*.oilTemperature","propulsion.*.temperature","propulsion.*.transmission.oilTemperature"]; 
 var error = [];
+let plugin = {};
+let timer = null;
+var asdstate = new Gpio(5, 'in');
 
 module.exports = function (app) {
-  let plugin = {}
-  let timer = null
-  
   //check os entrys:
   function check_entrys(){
     var data = fs.readFileSync('/boot/config.txt', 'utf8');
@@ -63,7 +63,6 @@ module.exports = function (app) {
   plugin.name = 'Raspberry_MCS Plugin'
   plugin.description = 'SignalK Plugin to provide MCS functionality to SignalK'
 
-    
     //read tty interfaces
     var files = fs.readdirSync('/dev/');
     files.forEach(check_ttydev);
@@ -73,15 +72,21 @@ module.exports = function (app) {
           ttyinterfaces.push(item)
       }
     }
+    
     //read 1-wire sensors
-    var sensorx = fs.readdirSync('/sys/bus/w1/devices/'); ///sys/bus/w1/devices/
+    try{
+        var sensorx = fs.readdirSync('/sys/bus/w1/devices/'); ///sys/bus/w1/devices/
+    }
+    catch{
+        console.log("MCS => the 1-wire devices are not reachable")
+    }
     sensorx.forEach(checkid);
+
     function checkid(item){
         if (item.slice(0,2)==28){
             sensors.push(item)
         }
     }
-
 
   plugin.schema =  () => (
     {
@@ -139,21 +144,18 @@ module.exports = function (app) {
             }
         }
        }
-    }
-  )
-
-
+    } )
 
   plugin.start = function (options) {
-    setTimeout(() =>{
-    var asdstate = new Gpio(5, 'in');
+
     //script for autoshutdown
     function checkasd(){
         var asd = asdstate.readSync()
         if (asd==0 && options.active){
          console.log("MCSshutdown") //add code for shutdown
-         }}
-    
+         }
+    }
+         
     if (asdstate.readSync()==1 && options.active){
     timer = setInterval(checkasd, 3000);
     }
@@ -163,17 +165,22 @@ module.exports = function (app) {
         var avdevices =options.devices
         avdevices.forEach(readsensor)
         function readsensor(getsensor){
-            var temp = fs.readFileSync("/sys/bus/w1/devices/"+ getsensor["oneWireId"] +"/w1_slave", 'utf8');
-            indext=temp.indexOf("t=")
-            temp= temp.slice(temp.indexOf("t=")+2,-1) / 1000 +273
-            console.log("signalKKey: "+getsensor["key"] + "    SensorID: "+getsensor["oneWireId"]+"    Value: "+temp)
-            var delta = createDeltaMessage (getsensor["key"], temp)
-            app.handleMessage(plugin.id, delta)
+            try{
+                var temp = fs.readFileSync("/sys/bus/w1/devices/"+ getsensor["oneWireId"] +"/w1_slave", 'utf8');
+                indext=temp.indexOf("t=");
+                temp= temp.slice(temp.indexOf("t=")+2,-1) / 1000 +273;
+                app.debug("signalKKey: "+getsensor["key"] + "    SensorID: "+getsensor["oneWireId"]+"    Value: "+temp);
+                var delta = createDeltaMessage (getsensor["key"], temp);
+                app.handleMessage(plugin.id, delta);
+            }
+            catch{
+                console.log("MCS=> the configurated Sensor is not reachable:" +getsensor["oneWireId"])
+            }
         }
     }
     console.log(options.rate)
-    timerreadds18b20 = setInterval(readds18b20,1000)
-  },10000)}
+    timerreadds18b20 = setInterval(readds18b20,3000)
+  }
 
 
   plugin.stop = function () {
@@ -182,7 +189,6 @@ module.exports = function (app) {
     try {
         asdstate.unexport()}
     catch { console.log("Info: no asdstate working")}
-  
   }
 
   //create the delta message
@@ -205,8 +211,6 @@ module.exports = function (app) {
       ]
     }
   }
-
-
   return plugin
-
 }
+
