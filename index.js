@@ -13,89 +13,56 @@
  * limitations under the License.
  */
 
-const { exec } = require("child_process");
 const fs = require('fs');
 var Gpio = require('onoff').Gpio;
 var  ttyinterfaces = [];
 var sensors = [];
 var speckeys =["environment.inside.engineRoom.temperature","environment.inside.freezer.temperature","environment.inside.heating.temperature","environment.inside.mainCabin.temperature","environment.inside.refrigerator.temperature","environment.inside.temperature","environment.outside.apparentWindChillTemperature","environment.outside.dewPointTemperature","environment.outside.heatIndexTemperature","environment.outside.temperature","environment.outside.theoreticalWindChillTemperature","environment.water.baitWell.temperature","environment.water.liveWell.temperature","environment.water.temperature,propulsion.*.coolantTemperature","propulsion.*.exhaustTemperature","propulsion.*.oilTemperature","propulsion.*.temperature","propulsion.*.transmission.oilTemperature"]; 
-var error =""
-
-
+var error = [];
 
 module.exports = function (app) {
   let plugin = {}
   let timer = null
-  var data = ""
-  sudoInstall()
-
-function sudoInstall(){
-        
-  error = "no errors"
-  function execconfig(entry){
-      exec(entry, (error, stdout, stderr) => 
-      {
-      if (error) {
-          console.log(`MCS -> error: ${error.message}`);
-          error = `error ${error.message}`
-      }
-      if (stderr) {
-          console.log(`MCS -> stderr: ${stderr}`);
-          error= `error ${stderr}`
-      }
-      console.log(`MCS -> Added: ${entry} to system`);
-      })};
-  var data = fs.readFileSync('/boot/config.txt', 'utf8');
   
-  //install 1 sc16is752 overlay
-  if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600")==-1){
-      execconfig(`sudo sh -c \"echo 'dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600' >> /boot/config.txt\"`)
-  }
-  //install 2 sc16is752 overlay
-  if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600")==-1){
-      execconfig(`sudo sh -c \"echo 'dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600' >> /boot/config.txt\"`)
-  }
-  //install 3 sc16is752 overlay
-  if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600")==-1){
-      execconfig(`sudo sh -c \"echo 'dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600' >> /boot/config.txt\"`)
-  }
-  //install mcp2515 overlay
-  if (data.indexOf("dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25")==-1){
-      execconfig(`sudo sh -c \"echo 'dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25' >> /boot/config.txt\"`)
-  }
-  //install spi-bcm2835
-  if (data.indexOf("dtoverlay=spi-bcm2835-overlay")==-1){
-      execconfig(`sudo sh -c \"echo 'dtoverlay=spi-bcm2835-overlay' >> /boot/config.txt\"`)
-  }
-  //add CAN0 device
-  var can0 = fs.readdirSync('/etc/network/interfaces.d/')
-  if (can0.includes("can0")==false) {
-      execconfig(`sudo sh -c \"echo '#physical can interfaces\\nallow-hotplug can0\\niface can0 can static\\nbitrate 250000\\ndown /sbin/ip link set $IFACE down\\nup /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0\"`)
-  }
-  //added i2c-dev to /etc/modules:
-  var modules = fs.readFileSync('/etc/modules', 'utf8');
-  if (modules.includes("i2c_dev")==false) {
-    execconfig(`sudo sh -c \"echo 'i2c_dev' >> /etc/modules\"`)
-  }
-  //added ds2482 to /etc/modules:
-  if (modules.includes("i2c_dev")==false) {
-    execconfig(`sudo sh -c \"echo 'ds2482' >> /etc/modules\"`)
-  }
-  //added wire to /etc/modules:
-  if (modules.includes("i2c_dev")==false) {
-    execconfig(`sudo sh -c \"echo 'wire' >> /etc/modules\"`)
-  }
-  //loaded ds2482 device
-  execconfig(`echo 'ds2482 0x18' | sudo tee /sys/class/i2c-adapter/i2c-1/new_device`)
+  //check os entrys:
+  function check_entrys(){
+    var data = fs.readFileSync('/boot/config.txt', 'utf8');
+    if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600")==-1){
+    error.push("error dt-overlay sc16is752 0x4c")
+    }
+    if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600")==-1){
+      error.push("error dt-overlay sc16is752 0x49")
+    }
+    if (data.indexOf("dtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600")==-1){
+      error.push("error dt-overlay sc16is752 0x48")
+    }
+    if (data.indexOf("dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25")==-1){
+      error.push("error dt-overlay mcp2515")
+    }
+    if (data.indexOf("dtoverlay=spi-bcm2835-overlay")==-1){
+      error.push("error dt-overlay spi bcm2835")
+    }
+    var can0 = fs.readdirSync('/etc/network/interfaces.d/')
+    if (can0.includes("can0")==false){
+      error.push("error interfaces.d can0")
+    }
+    var modules = fs.readFileSync('/etc/modules', 'utf8');
+    if (modules.includes("i2c_dev")==false) {
+      error.push("error i2c_dev in modules")
+    }
+    if (modules.includes("ds2482")==false) {
+      error.push("error ds2482 in modules")
+    }
+    if (modules.includes("wire")==false) {
+      error.push("error wire in modules")
+    }
   return error
-}
-//setTimeout(() => {
+  }
 
   plugin.id = 'SignalK_raspberry_MCS'
   plugin.name = 'Raspberry_MCS Plugin'
   plugin.description = 'SignalK Plugin to provide MCS functionality to SignalK'
 
-    //os config
     
     //read tty interfaces
     var files = fs.readdirSync('/dev/');
@@ -106,7 +73,6 @@ function sudoInstall(){
           ttyinterfaces.push(item)
       }
     }
-
     //read 1-wire sensors
     var sensorx = fs.readdirSync('/sys/bus/w1/devices/'); ///sys/bus/w1/devices/
     sensorx.forEach(checkid);
@@ -139,7 +105,7 @@ function sudoInstall(){
             },
             "information2":{
                 "title": "If there is an error: (see also Server log):",
-                "description": `${error}`,
+                "description": `${check_entrys()}`,
                 "type": "null"
             }}},
             "rate": {
@@ -209,6 +175,7 @@ function sudoInstall(){
     timerreadds18b20 = setInterval(readds18b20,1000)
   },10000)}
 
+
   plugin.stop = function () {
     if(timer){
         clearInterval(timer)}
@@ -217,7 +184,6 @@ function sudoInstall(){
     catch { console.log("Info: no asdstate working")}
   
   }
-
 
   //create the delta message
   function createDeltaMessage (key, value) {
@@ -242,5 +208,5 @@ function sudoInstall(){
 
 
   return plugin
-//},5000)
+
 }
