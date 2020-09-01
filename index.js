@@ -116,6 +116,7 @@ module.exports = function (app) {
             }}},
             "rate": {
               "title": "Sample Rate 1-wire Sensor (in seconds)",
+              "description": "should be >1s each sensor!, min 10s",
               "type": "number",
               "default": 30
             },
@@ -160,6 +161,7 @@ module.exports = function (app) {
     }
          
     if (asdstate.readSync()==1 && options.active){
+      console.log("MCS => autoshutdown enable")
       timer = setInterval(checkasd, 3000);
     }
 
@@ -181,7 +183,11 @@ module.exports = function (app) {
             }
         }
     }
-  timerreadds18b20 = setInterval(readds18b20,10000)
+  var rate = options.rate
+  if (rate<10){
+    rate=10
+  }
+  timerreadds18b20 = setInterval(readds18b20,rate*1000)
   }
 
 
