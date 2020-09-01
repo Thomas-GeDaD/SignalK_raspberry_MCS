@@ -17,11 +17,10 @@ var Gpio = require('onoff').Gpio;
 
 var  ttyinterfaces = [];
 var sensors = [];
+//availible signalk-deltas
 var speckeys =["environment.inside.engineRoom.temperature","environment.inside.freezer.temperature","environment.inside.heating.temperature","environment.inside.mainCabin.temperature","environment.inside.refrigerator.temperature","environment.inside.temperature","environment.outside.apparentWindChillTemperature","environment.outside.dewPointTemperature","environment.outside.heatIndexTemperature","environment.outside.temperature","environment.outside.theoreticalWindChillTemperature","environment.water.baitWell.temperature","environment.water.liveWell.temperature","environment.water.temperature,propulsion.*.coolantTemperature","propulsion.*.exhaustTemperature","propulsion.*.oilTemperature","propulsion.*.temperature","propulsion.*.transmission.oilTemperature"]; 
 var error = [];
 let plugin = {};
-let timer = null;
-var asdstate = new Gpio(5, 'in');
 
 module.exports = function (app) {
   //check os entrys:
@@ -148,6 +147,8 @@ module.exports = function (app) {
 
   plugin.start = function (options) {
 
+    var asdstate = new Gpio(5, 'in');
+
     //script for autoshutdown
     function checkasd(){
         var asd = asdstate.readSync()
@@ -157,7 +158,7 @@ module.exports = function (app) {
     }
          
     if (asdstate.readSync()==1 && options.active){
-    timer = setInterval(checkasd, 3000);
+      let timer = setInterval(checkasd, 3000);
     }
 
     //1-wire Sensors send data
@@ -178,14 +179,15 @@ module.exports = function (app) {
             }
         }
     }
-    console.log(options.rate)
-    timerreadds18b20 = setInterval(readds18b20,3000)
+  let timerreadds18b20 = setInterval(readds18b20,10000)
   }
 
 
   plugin.stop = function () {
     if(timer){
         clearInterval(timer)}
+        if(timerreadds18b20){
+          clearInterval(timerreadds18b20)}
     try {
         asdstate.unexport()}
     catch { console.log("Info: no asdstate working")}
