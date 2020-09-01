@@ -73,6 +73,10 @@ function sudoInstall(){
     if (modules.includes("wire")==false) {
       execconfig(`sudo sh -c \"echo 'wire' >> /etc/modules\"`)
     }
-    //loaded ds2482 device
-    //execconfig(`echo 'ds2482 0x18' | sudo tee /sys/class/i2c-adapter/i2c-1/new_device`)
+    //create ds2482 device service
+    var ds2482service = fs.readdirSync('/etc/systemd/system/')
+    if (ds2482service.includes("mcsowire.service")==false){
+        execconfig("echo \"[Unit]\\nDescription=MCS owire start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/bin/sh -c \'echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device\'\\n\\n[Install]\\nWantedBy=multi-user.target\" | sudo tee /etc/systemd/system/mcsowire.service")
+        execconfig("sudo systemctl enable mcsowire.service")
+    }
   }
