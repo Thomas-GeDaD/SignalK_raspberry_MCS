@@ -21,6 +21,8 @@ var sensors = [];
 var speckeys =["environment.inside.engineRoom.temperature","environment.inside.freezer.temperature","environment.inside.heating.temperature","environment.inside.mainCabin.temperature","environment.inside.refrigerator.temperature","environment.inside.temperature","environment.outside.apparentWindChillTemperature","environment.outside.dewPointTemperature","environment.outside.heatIndexTemperature","environment.outside.temperature","environment.outside.theoreticalWindChillTemperature","environment.water.baitWell.temperature","environment.water.liveWell.temperature","environment.water.temperature,propulsion.*.coolantTemperature","propulsion.*.exhaustTemperature","propulsion.*.oilTemperature","propulsion.*.temperature","propulsion.*.transmission.oilTemperature"]; 
 var error = [];
 let plugin = {};
+let timerreadds18b20 = null;
+let timer = null;
 
 module.exports = function (app) {
   //check os entrys:
@@ -158,7 +160,7 @@ module.exports = function (app) {
     }
          
     if (asdstate.readSync()==1 && options.active){
-      let timer = setInterval(checkasd, 3000);
+      timer = setInterval(checkasd, 3000);
     }
 
     //1-wire Sensors send data
@@ -179,7 +181,7 @@ module.exports = function (app) {
             }
         }
     }
-  let timerreadds18b20 = setInterval(readds18b20,10000)
+  timerreadds18b20 = setInterval(readds18b20,10000)
   }
 
 
