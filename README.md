@@ -4,7 +4,8 @@ Attention: the postinstall.js scripts need sudo privilegs!
 
 ## Overview:  
 This package install all dependencies, modules and dt-overlays to provide the fully avalability of the MCS board in SignalK.  
-This package only works on a Raspberry Pi with a wired GeDaD MCS (Marine Controll Server). 
+This package only works on a Raspberry Pi with a wired GeDaD MCS (Marine Controll Server).   
+
 https://www.gedad.de/shop/gecos-wired/#cc-m-product-15562399022  
 
 Be careful. The postinstallationscript works with sudo acess! 
