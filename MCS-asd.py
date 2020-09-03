@@ -20,12 +20,10 @@ import RPi.GPIO as GPIO
 # this file runs as a service in the background
 def main():
 	try:
-
 		#### GPIO Config
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(5, GPIO.IN)
 		start=GPIO.input(5)
-		
 		
 		if start ==1:
 			while True:
@@ -36,8 +34,8 @@ def main():
 						#os.system("sudo shutdown -h now") 
 						os.system("sudo reboot")
 				time.sleep(2)
-        else:
-            print ("MCS=> autoshutdown disable")
+		else:
+			print ("MCS=> autoshutdown disable")
 	except Exception as e: print (str(e))
 
 if __name__ == '__main__':
