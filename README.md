@@ -23,7 +23,7 @@ sudo $HOME/.signalk/node_modules/SignalK_raspberry_MCS/postinstall.js
 ## How to use (Plugin)
 Plugin overview:  
 
-![GitHub Logo](/Picture_MCS_Plugin.png)
+![Plugin](/data/Picture_MCS_Plugin.png)
 
 After this all should work.. ;-)  
 
@@ -31,6 +31,54 @@ After this all should work.. ;-)
 All 6 serial interfaces should now be availible in the connection tab. You find the unter "Input Type" NMEA0183 , "MMEA0183Source" Serial.  
 You can use each interface as "Input" or "Output"  
 
-![GitHub Logo](/Picture_MCS_Serial.png)
+![Serial](/data/Picture_MCS_Serial.png)  
 
-## How to use CAN (NMEA2000) interface
+## How to use CAN (NMEA2000) interface  
+
+You can Setup the caninterface directly in the connections  
+
+![CAN](/data/Picture_MCS_CAN.png)
+
+## How to use 1-wire (DS18B20 temp sensors
+
+You can use more then one sensor on the 1-wire line (see Manual MCS-Board)  
+CLick on the add Button. Then you can define the Values of your Sensor. You can use a Sensor (Sensor ID) more then once to assign the value to more then one delta. But do not use a delta more then once!
+
+![owire](/data/Picture_MCS_owire.png)
+
+Fully configurated Sensor:
+
+![owire](/data/Picture_MCS_owire1.png)
+
+Data output:
+
+![owire](/data/Picture_MCS_owire2.png)
+
+The sample rate should be not less then "number of sensors" x 1s = "sample rate"
+
+
+## How to use a digital input (IN1-IN4) for seatalk1 reading
+
+Since the Seatalk1 GPIO reading is implimented in SignalK, ou can use the inputs for ST1 reading.  
+Follow the guidline in the [Seatalk(GPIO).md](https://github.com/SignalK/signalk-server/blob/master/Seatalk(GPIO).md)  
+The "Hardware part you can ignore, because it´s done on the MCS board. Only connect the yellow wire to one of the 4 inputs.  
+The IN1-IN4 inputs are assignet as follows:
+|MCS Input|GPIO|
+| ------ | ------ |
+|In1|GPIO19|
+|In2|GPIO16|
+|In3|GPIO26|
+|In4|GPIO20|
+
+
+## General 
+Don´t forget to save the plugin settings after changes. ;-)
+
+## Todos
+- Add plugin intigration for speed (Hz) measurement through In1-In4
+- Add plugin intigration for switch states (Sensors etc.) from the IN1-IN4 to map to delta´s
+
+
+
+
+
