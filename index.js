@@ -96,10 +96,6 @@ module.exports = function (app) {
         "type": "object",
         "required": ["oneWireId"],
         "properties": {
-          "active": {
-            "type": "boolean",
-            "title": "Active"
-            },
         "setup":{
           "title": "Setup information",
           "type": "object",
@@ -149,21 +145,6 @@ module.exports = function (app) {
     } )
 
   plugin.start = function (options) {
-
-    var asdstate = new Gpio(5, 'in');
-
-    //script for autoshutdown
-    function checkasd(){
-        var asd = asdstate.readSync()
-        if (asd==0 && options.active){
-         console.log("MCSshutdown") //add code for shutdown
-         }
-    }
-         
-    if (asdstate.readSync()==1 && options.active){
-      console.log("MCS => autoshutdown enable")
-      timer = setInterval(checkasd, 3000);
-    }
 
     //1-wire Sensors send data
     function readds18b20(){
@@ -223,4 +204,3 @@ module.exports = function (app) {
   }
   return plugin
 }
-
