@@ -31,8 +31,8 @@ def main():
 					print ("shutdown in 2s")
 					time.sleep(2)
 					if GPIO.input(5) == 0:
-						#os.system("sudo shutdown -h now") 
-						os.system("sudo reboot")
+						os.system("sudo shutdown -h now") 
+						#os.system("sudo reboot")
 				time.sleep(2)
 		else:
 			print ("MCS=> autoshutdown disable")
