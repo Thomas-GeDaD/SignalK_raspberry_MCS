@@ -9,9 +9,6 @@
   "keywords": [
     "signalk-node-server-plugin"
   ],
-  "scripts": {
-    "postinstall": "postinstall.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS.git"
