@@ -98,7 +98,7 @@ module.exports = function (app) {
         "properties": {
           "active": {
             "type": "null",
-            "title": "sudo node $HOME/.signalk/node_modules/SignalK_raspberry_MCS/postinstall.js"
+            "title": "sudo node $HOME/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js"
             },
         "setup":{
           "title": "Setup information",
