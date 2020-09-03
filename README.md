@@ -15,7 +15,7 @@ Install the SignalK_raspberry_MCS Plugin in the Signalk Appstore.
 After the Installation:
 1. Run the postinstallscript:  
 ```sh
-sudo $HOME/.signalk/node_modules/signalk-raspberry.mcs/postinstall.js
+sudo $HOME/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js
 ```  
 (This script add the dt-overlays for CAN and NMEA0183 to the config.txt, adds the modules and installs and enable the 1-wire service and the autoshutdown service)  
 
