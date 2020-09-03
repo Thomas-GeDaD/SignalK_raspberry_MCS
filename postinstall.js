@@ -74,9 +74,14 @@ function sudoInstall(){
       execconfig(`sudo sh -c \"echo 'wire' >> /etc/modules\"`)
     }
     //create ds2482 device service
-    var ds2482service = fs.readdirSync('/etc/systemd/system/')
-    if (ds2482service.includes("mcsowire.service")==false){
+    var service = fs.readdirSync('/etc/systemd/system/')
+    if (service.includes("mcsowire.service")==false){
         execconfig("echo \"[Unit]\\nDescription=MCS owire start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/bin/sh -c \'echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device\'\\n\\n[Install]\\nWantedBy=multi-user.target\" | sudo tee /etc/systemd/system/mcsowire.service")
         execconfig("sudo systemctl enable mcsowire.service")
+    }
+    //create MCS autoshutdown
+    if (service.includes("mcsasd.service")==false){
+        execconfig("echo \"[Unit]\\nDescription=MCS autoshutdown start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/usr/bin/python3 \\$HOME/.signalk/node_modules/signalk_raspberry_MCS/MCS-asd.py\\n\\n[Install]\\nWantedBy=multi-user.target\" | sudo tee /etc/systemd/system/mcsasd.service")
+        execconfig("sudo systemctl enable mcsasd.service")
     }
   }
