@@ -1,5 +1,5 @@
 {
-  "name": "SignalK_raspberry_MCS",
+  "name": "signalk_raspberry_mcs",
   "author": "Thomas Gersmann / GeDaD",
   "description": "SignalK Plugin to provide MCS functionality to SignalK",
   "license": "MIT",
