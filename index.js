@@ -139,7 +139,7 @@ module.exports = function (app) {
                 "key": {
                   "type": "string",
                   "title": "Signal K Key",
-                  "description": "This is used to build the path in Signal K. It will be appended to environment",
+                  "description": "This is used to build the path in Signal K.",
                   "enum": speckeys
                 }
               }
