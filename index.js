@@ -92,10 +92,14 @@ module.exports = function (app) {
   plugin.schema =  () => (
     {
         "title": "Enable autoshutdown.",
-        "description": "If you enable the autoshutdown, The Pi automaticly shuts down after \"+12V enable\" switch to low.",
+        "description": "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi.",
         "type": "object",
         "required": ["oneWireId"],
         "properties": {
+          "active": {
+            "type": "null",
+            "title": "sduo node $HOME/.signalk/node_modules/SignalK_raspberry_MCS/postinstall.js"
+            },
         "setup":{
           "title": "Setup information",
           "type": "object",
@@ -146,6 +150,7 @@ module.exports = function (app) {
 
   plugin.start = function (options) {
 
+
     //1-wire Sensors send data
     function readds18b20(){
         var avdevices =options.devices
@@ -173,10 +178,8 @@ module.exports = function (app) {
 
 
   plugin.stop = function () {
-    if(timer){
-        clearInterval(timer)}
-        if(timerreadds18b20){
-          clearInterval(timerreadds18b20)}
+     if(timerreadds18b20){
+       clearInterval(timerreadds18b20)}
     try {
         asdstate.unexport()}
     catch { console.log("Info: no asdstate working")}
@@ -204,3 +207,4 @@ module.exports = function (app) {
   }
   return plugin
 }
+
