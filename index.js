@@ -98,7 +98,7 @@ module.exports = function (app) {
         "properties": {
           "active": {
             "type": "null",
-            "title": "sudo node $HOME/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js"
+            "title": "sduo node $HOME/.signalk/node_modules/SignalK_raspberry_MCS/postinstall.js"
             },
         "setup":{
           "title": "Setup information",
@@ -139,7 +139,7 @@ module.exports = function (app) {
                 "key": {
                   "type": "string",
                   "title": "Signal K Key",
-                  "description": "This is used to build the path in Signal K.",
+                  "description": "This is used to build the path in Signal K. It will be appended to environment",
                   "enum": speckeys
                 }
               }
@@ -180,9 +180,6 @@ module.exports = function (app) {
   plugin.stop = function () {
      if(timerreadds18b20){
        clearInterval(timerreadds18b20)}
-    try {
-        asdstate.unexport()}
-    catch { console.log("Info: no asdstate working")}
   }
 
   //create the delta message
