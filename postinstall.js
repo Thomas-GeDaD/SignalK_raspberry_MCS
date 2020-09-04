@@ -81,7 +81,7 @@ function sudoInstall(){
     }
     //create MCS autoshutdown
     if (service.includes("mcsasd.service")==false){
-        execconfig("echo \"[Unit]\\nDescription=MCS autoshutdown start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/usr/bin/python3 \\$HOME/.signalk/node_modules/signalk-raspberry-mcs/MCS-asd.py\\n\\n[Install]\\nWantedBy=multi-user.target\" | tee /etc/systemd/system/mcsasd.service")
+        execconfig("echo \"[Unit]\\nDescription=MCS autoshutdown start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/usr/bin/python3 $HOME/.signalk/node_modules/signalk_raspberry_MCS/MCS-asd.py\\n\\n[Install]\\nWantedBy=multi-user.target\" | tee /etc/systemd/system/mcsasd.service")
         execconfig("systemctl enable mcsasd.service")
     }
   }
