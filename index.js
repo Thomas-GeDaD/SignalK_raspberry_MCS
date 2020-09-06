@@ -107,16 +107,13 @@ module.exports = function (app) {
 
   //read 1-wire sensors
   try {
-    var sensorx = fs.readdirSync("/sys/bus/w1/devices/") ///sys/bus/w1/devices/
+    fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
+      if (item.slice(0, 2) == 28) {
+        sensors.push(item)
+      }
+    })
   } catch {
     console.log("MCS => the 1-wire devices are not reachable")
-  }
-  sensorx.forEach(checkid)
-
-  function checkid(item) {
-    if (item.slice(0, 2) == 28) {
-      sensors.push(item)
-    }
   }
 
   plugin.schema = () => ({
