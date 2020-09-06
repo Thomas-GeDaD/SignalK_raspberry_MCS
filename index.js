@@ -99,14 +99,11 @@ module.exports = function (app) {
   plugin.description = "SignalK Plugin to provide MCS functionality to SignalK"
 
   //read tty interfaces
-  var files = fs.readdirSync("/dev/")
-  files.forEach(check_ttydev)
-
-  function check_ttydev(item) {
+  fs.readdirSync("/dev/").forEach((item) => {
     if (item.includes("ttySC")) {
       ttyinterfaces.push(item)
     }
-  }
+  })
 
   //read 1-wire sensors
   try {
