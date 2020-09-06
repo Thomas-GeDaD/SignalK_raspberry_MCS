@@ -80,7 +80,12 @@ function sudoInstall() {
   var can0 = fs.readdirSync("/etc/network/interfaces.d/")
   if (can0.includes("can0") == false) {
     execconfig(
-      `echo '#physical can interfaces\\nallow-hotplug can0\\niface can0 can static\\nbitrate 250000\\ndown /sbin/ip link set $IFACE down\\nup /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
+      `echo '#physical can interfaces
+allow-hotplug can0
+iface can0 can static
+bitrate 250000
+down /sbin/ip link set $IFACE down
+up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
     )
   }
   //added i2c-dev to /etc/modules:
@@ -100,16 +105,32 @@ function sudoInstall() {
   var service = fs.readdirSync("/etc/systemd/system/")
   if (service.includes("mcsowire.service") == false) {
     execconfig(
-      "echo \"[Unit]\\nDescription=MCS owire start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/bin/sh -c 'echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device'\\n\\n[Install]\\nWantedBy=multi-user.target\" | tee /etc/systemd/system/mcsowire.service"
+      `echo "[Unit]
+Description=MCS owire start service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device'
+
+[Install]
+WantedBy=multi-user.target\" | tee /etc/systemd/system/mcsowire.service`
     )
     execconfig("systemctl enable mcsowire.service")
   }
   //create MCS autoshutdown
   if (service.includes("mcsasd.service") == false) {
     execconfig(
-      'echo "[Unit]\\nDescription=MCS autoshutdown start service\\nAfter=multi-user.target\\n\\n[Service]\\nType=simple\\nExecStart=/usr/bin/python3 ' +
-        __dirname +
-        '/MCS-asd.py\\n\\n[Install]\\nWantedBy=multi-user.target" | tee /etc/systemd/system/mcsasd.service'
+      `echo "[Unit]
+Description=MCS autoshutdown start service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 ${__dirname}/MCS-asd.py
+
+[Install]
+WantedBy=multi-user.target" | tee /etc/systemd/system/mcsasd.service`
     )
     execconfig("systemctl enable mcsasd.service")
   }
