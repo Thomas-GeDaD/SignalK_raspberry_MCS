@@ -231,7 +231,6 @@ module.exports = function (app) {
           source: {
             label: plugin.id,
           },
-          timestamp: new Date().toISOString(),
           values: [
             {
               path,
