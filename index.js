@@ -113,7 +113,7 @@ module.exports = function (app) {
       }
     })
   } catch {
-    console.log("MCS => the 1-wire devices are not reachable")
+    app.error("1-wire devices are not reachable")
   }
 
   plugin.schema = () => ({
@@ -202,8 +202,8 @@ module.exports = function (app) {
             var delta = createDeltaMessage(getsensor["key"], temp)
             app.handleMessage(plugin.id, delta)
           } catch {
-            console.log(
-              "MCS=> the configurated Sensor is not reachable:" +
+            app.error(
+              "Configured Sensor is not reachable:" +
                 getsensor["oneWireId"]
             )
           }
