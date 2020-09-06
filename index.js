@@ -182,33 +182,32 @@ module.exports = function (app) {
   plugin.start = function (options) {
     //1-wire Sensors send data
     function readds18b20() {
-      var avdevices = options.devices
-      avdevices.forEach(readsensor)
-      function readsensor(getsensor) {
-        try {
-          var temp = fs.readFileSync(
-            "/sys/bus/w1/devices/" + getsensor["oneWireId"] + "/w1_slave",
-            "utf8"
-          )
-          indext = temp.indexOf("t=")
-          temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273
-          app.debug(
-            "signalKKey: " +
-              getsensor["key"] +
-              "    SensorID: " +
-              getsensor["oneWireId"] +
-              "    Value: " +
-              temp
-          )
-          var delta = createDeltaMessage(getsensor["key"], temp)
-          app.handleMessage(plugin.id, delta)
-        } catch {
-          console.log(
-            "MCS=> the configurated Sensor is not reachable:" +
-              getsensor["oneWireId"]
-          )
-        }
-      }
+      Array.isArray(options.devices) &&
+        options.devices.forEach((getsensor) => {
+          try {
+            var temp = fs.readFileSync(
+              "/sys/bus/w1/devices/" + getsensor["oneWireId"] + "/w1_slave",
+              "utf8"
+            )
+            indext = temp.indexOf("t=")
+            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273
+            app.debug(
+              "signalKKey: " +
+                getsensor["key"] +
+                "    SensorID: " +
+                getsensor["oneWireId"] +
+                "    Value: " +
+                temp
+            )
+            var delta = createDeltaMessage(getsensor["key"], temp)
+            app.handleMessage(plugin.id, delta)
+          } catch {
+            console.log(
+              "MCS=> the configurated Sensor is not reachable:" +
+                getsensor["oneWireId"]
+            )
+          }
+        })
     }
     var rate = options.rate
     if (rate < 10) {
