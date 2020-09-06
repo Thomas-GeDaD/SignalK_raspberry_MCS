@@ -223,7 +223,7 @@ module.exports = function (app) {
   }
 
   //create the delta message
-  function createDeltaMessage(key, value) {
+  function createDeltaMessage(path, value) {
     return {
       context: "vessels." + app.selfId,
       updates: [
@@ -234,8 +234,8 @@ module.exports = function (app) {
           timestamp: new Date().toISOString(),
           values: [
             {
-              path: key,
-              value: value,
+              path,
+              value,
             },
           ],
         },
