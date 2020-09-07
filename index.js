@@ -33,15 +33,20 @@ var speckeys = [
   "environment.water.baitWell.temperature",
   "environment.water.liveWell.temperature",
   "environment.water.temperature,propulsion.*.coolantTemperature",
-  "propulsion.*.exhaustTemperature",
-  "propulsion.*.oilTemperature",
-  "propulsion.*.temperature",
-  "propulsion.*.transmission.oilTemperature",
+  "propulsion.1.exhaustTemperature",
+  "propulsion.1.oilTemperature",
+  "propulsion.1.temperature",
+  "propulsion.1.transmission.oilTemperature",
+  "propulsion.2.exhaustTemperature",
+  "propulsion.2.oilTemperature",
+  "propulsion.2.temperature",
+  "propulsion.2.transmission.oilTemperature",
 ]
 var error = []
 let plugin = {}
 let timerreadds18b20 = null
 let timer = null
+var printerrors = "no errors"
 
 module.exports = function (app) {
   //check os entrys:
@@ -94,6 +99,13 @@ module.exports = function (app) {
     return error
   }
 
+  var errorentrys = check_entrys()
+  if (errorentrys){
+      app.error(errorentrys)
+      printerrors= "There are errors and warnings. See Log"
+  }
+
+
   plugin.id = "SignalK_raspberry_MCS"
   plugin.name = "Raspberry_MCS Plugin"
   plugin.description = "SignalK Plugin to provide MCS functionality to SignalK"
@@ -101,7 +113,7 @@ module.exports = function (app) {
   //read tty interfaces
   fs.readdirSync("/dev/").forEach((item) => {
     if (item.includes("ttySC")) {
-      ttyinterfaces.push(item)
+      ttyinterfaces.push("/dev/"+item +" , ")
     }
   })
 
@@ -126,7 +138,7 @@ module.exports = function (app) {
       active: {
         type: "null",
         title:
-          "sduo node $HOME/.signalk/node_modules/SignalK_raspberry_MCS/postinstall.js",
+          "sudo node $HOME/.signalk/node_modules/signals_raspberry_mcs/postinstall.js",
       },
       setup: {
         title: "Setup information",
@@ -139,7 +151,7 @@ module.exports = function (app) {
           },
           information2: {
             title: "If there is an error: (see also Server log):",
-            description: `${check_entrys()}`,
+            description: `${printerrors}`,
             type: "null",
           },
         },
