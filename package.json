@@ -17,8 +17,6 @@
     "url": "https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS/issues"
   },
   "dependencies": {
-    "onoff": "6.0.0",
-    "fs": "0.0.1-security",
-    "child_process": "1.0.2"
+    "onoff": "6.0.0"
   }
 }
