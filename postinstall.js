@@ -20,18 +20,16 @@ const fs = require("fs")
 sudoInstall()
 function sudoInstall() {
   function execconfig(entry) {
-    execSync(entry, (error, stdout, stderr) => {
-      if (error) {
-        console.log(`MCS -> error: ${error.message}`)
-        error = `error ${error.message}`
-      }
-      if (stderr) {
-        console.log(`MCS -> stderr: ${stderr}`)
-        error = `error ${stderr}`
-      }
-      console.log(`MCS -> Added: ${entry} to system`)
-      console.log(stdout)
-    })
+    try {
+    var exec = execSync(entry).toString()
+    console.log ("MCS =>"+entry)
+    console.log(exec)
+    }
+
+    catch (error) {
+      console.log(error.message)
+    }
+
   }
 
 
