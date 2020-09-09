@@ -106,7 +106,7 @@ module.exports = function (app) {
   }
   //handle error
   var errorentrys = check_entrys()
-  if (errorentrys === false){
+  if (errorentrys != ""){
       app.error(errorentrys)
       printerrors = "There are errors and warnings. See Server Log"
       infoinstall1 = "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi."
