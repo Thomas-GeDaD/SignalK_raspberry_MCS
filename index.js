@@ -152,7 +152,7 @@ module.exports = function (app) {
         type: "object",
         properties: {
           information1: {
-            title: "Availible tty (nmea0183) interfaces of the MCS-Board:",
+            title: "Available tty (nmea0183) interfaces of the MCS-Board:",
             description: `${ttyinterfaces}`,
             type: "null",
           },
