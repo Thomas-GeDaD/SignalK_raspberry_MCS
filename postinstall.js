@@ -27,11 +27,10 @@ function sudoInstall() {
     }
 
     catch (error) {
-      console.log(error.message)
+      console.log(error.stderr.toString())
     }
 
   }
-
 
   var data = fs.readFileSync("/boot/config.txt", "utf8")
 
@@ -139,4 +138,9 @@ execconfig(`apt-get install python3 idle3 pigpio python-pigpio python3-pigpio -y
 // enable pigpio systemctl enable pigpiod && sudo systemctl restart  pigpiod
 execconfig("systemctl enable pigpiod && sudo systemctl restart  pigpiod")
 
+//reboot the Pi 
+console.log(" your Pi will now restart!")
+setTimeout(() => {
+execconfig ("reboot")
+},5000)
 }
