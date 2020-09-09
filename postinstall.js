@@ -16,6 +16,7 @@
 //installation script for MCS dt overlay and Modul entrys. Runs in sudo mode!
 const { execSync } = require("child_process")
 const fs = require("fs")
+var errorinst = false
 
 sudoInstall()
 function sudoInstall() {
@@ -28,6 +29,7 @@ function sudoInstall() {
 
     catch (error) {
       console.log(error.stderr.toString())
+      errorinst=true
     }
 
   }
@@ -138,9 +140,12 @@ execconfig(`apt-get install python3 idle3 pigpio python-pigpio python3-pigpio -y
 // enable pigpio systemctl enable pigpiod && sudo systemctl restart  pigpiod
 execconfig("systemctl enable pigpiod && sudo systemctl restart  pigpiod")
 
-//reboot the Pi 
-console.log(" your Pi will now restart!")
-setTimeout(() => {
-execconfig ("reboot")
-},5000)
+//reboot the Pi if there are no errors
+if (errorinst==false) {
+  console.log("no errors or warnings")
+  console.log(" your Pi will now restart!")
+  setTimeout(() => {
+  execconfig ("reboot")
+  },5000)
+}
 }
