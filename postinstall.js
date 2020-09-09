@@ -19,6 +19,7 @@ const fs = require("fs")
 
 sudoInstall()
 function sudoInstall() {
+  run()
   function execconfig(entry) {
     exec(entry, (error, stdout, stderr) => {
       if (error) {
@@ -32,9 +33,12 @@ function sudoInstall() {
       console.log(`MCS -> Added: ${entry} to system`)
     })
   }
+
+
   var data = fs.readFileSync("/boot/config.txt", "utf8")
 
   //install 1 sc16is752 overlay
+
   if (
     data.indexOf(
       "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600"
@@ -108,11 +112,9 @@ up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
       `echo "[Unit]
 Description=MCS owire start service
 After=multi-user.target
-
 [Service]
 Type=simple
 ExecStart=/bin/sh -c 'echo ds2482 0x18 > /sys/bus/i2c/devices/i2c-1/new_device'
-
 [Install]
 WantedBy=multi-user.target\" | tee /etc/systemd/system/mcsowire.service`
     )
@@ -124,14 +126,19 @@ WantedBy=multi-user.target\" | tee /etc/systemd/system/mcsowire.service`
       `echo "[Unit]
 Description=MCS autoshutdown start service
 After=multi-user.target
-
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 ${__dirname}/MCS-asd.py
-
 [Install]
 WantedBy=multi-user.target" | tee /etc/systemd/system/mcsasd.service`
     )
     execconfig("systemctl enable mcsasd.service")
   }
+
+//install further dependencies: sudo apt-get install python3 idle3 pigpio python-pigpio python3-pigpio
+execconfig(`apt-get install python3 idle3 pigpio python-pigpio python3-pigpio -y`)
+
+// enable pigpio systemctl enable pigpiod && sudo systemctl restart  pigpiod
+execconfig("systemctl enable pigpiod && sudo systemctl restart  pigpiod")
+
 }
