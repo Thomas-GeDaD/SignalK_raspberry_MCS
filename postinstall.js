@@ -14,14 +14,13 @@
  */
 
 //installation script for MCS dt overlay and Modul entrys. Runs in sudo mode!
-const { exec } = require("child_process")
+const { execSync } = require("child_process")
 const fs = require("fs")
 
 sudoInstall()
 function sudoInstall() {
-  run()
   function execconfig(entry) {
-    exec(entry, (error, stdout, stderr) => {
+    execSync(entry, (error, stdout, stderr) => {
       if (error) {
         console.log(`MCS -> error: ${error.message}`)
         error = `error ${error.message}`
@@ -31,6 +30,7 @@ function sudoInstall() {
         error = `error ${stderr}`
       }
       console.log(`MCS -> Added: ${entry} to system`)
+      console.log(stdout)
     })
   }
 
