@@ -17,6 +17,7 @@ var Gpio = require("onoff").Gpio
 
 var ttyinterfaces = []
 var sensors = []
+
 //availible signalk-deltas
 var speckeys = [
   "environment.inside.engineRoom.temperature",
@@ -32,11 +33,13 @@ var speckeys = [
   "environment.outside.theoreticalWindChillTemperature",
   "environment.water.baitWell.temperature",
   "environment.water.liveWell.temperature",
-  "environment.water.temperature,propulsion.*.coolantTemperature",
+  "environment.water.temperature",
+  "propulsion.1.coolantTemperature",
   "propulsion.1.exhaustTemperature",
   "propulsion.1.oilTemperature",
   "propulsion.1.temperature",
   "propulsion.1.transmission.oilTemperature",
+  "propulsion.2.coolantTemperature",
   "propulsion.2.exhaustTemperature",
   "propulsion.2.oilTemperature",
   "propulsion.2.temperature",
@@ -45,8 +48,9 @@ var speckeys = [
 var error = []
 let plugin = {}
 let timerreadds18b20 = null
-let timer = null
-var printerrors = "no errors"
+var printerrors = "no errors or warnings"
+var infoinstall1 = ""
+var infoinstall2 =  "=> postinstall is done"
 
 module.exports = function (app) {
   //check os entrys:
@@ -74,12 +78,14 @@ module.exports = function (app) {
       error.push("error dt-overlay sc16is752 0x48")
     }
     if (
-      data.indexOf("dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25") ==
-      -1
+      data.indexOf("dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25"
+      ) == -1
     ) {
       error.push("error dt-overlay mcp2515")
     }
-    if (data.indexOf("dtoverlay=spi-bcm2835-overlay") == -1) {
+    if (data.indexOf("dtoverlay=spi-bcm2835-overlay"
+      ) == -1
+    ) {
       error.push("error dt-overlay spi bcm2835")
     }
     var can0 = fs.readdirSync("/etc/network/interfaces.d/")
@@ -98,14 +104,16 @@ module.exports = function (app) {
     }
     return error
   }
-
+  //handle error
   var errorentrys = check_entrys()
-  if (errorentrys){
+  if (errorentrys === false){
       app.error(errorentrys)
-      printerrors= "There are errors and warnings. See Log"
+      printerrors = "There are errors and warnings. See Server Log"
+      infoinstall1 = "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi."
+      infoinstall2 =  "sudo node $HOME/.signalk/node_modules/signals_raspberry_mcs/postinstall.js"
   }
 
-
+  //Plugin settings
   plugin.id = "SignalK_raspberry_MCS"
   plugin.name = "Raspberry_MCS Plugin"
   plugin.description = "SignalK Plugin to provide MCS functionality to SignalK"
@@ -113,7 +121,7 @@ module.exports = function (app) {
   //read tty interfaces
   fs.readdirSync("/dev/").forEach((item) => {
     if (item.includes("ttySC")) {
-      ttyinterfaces.push("/dev/"+item +" , ")
+      ttyinterfaces.push("  /dev/"+item +" ")
     }
   })
 
@@ -128,17 +136,16 @@ module.exports = function (app) {
     app.error("1-wire devices are not reachable")
   }
 
+  //Plugin shema
   plugin.schema = () => ({
     title: "Enable autoshutdown.",
-    description:
-      "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi.",
+    description: `${infoinstall1}`,
     type: "object",
     required: ["oneWireId"],
     properties: {
       active: {
         type: "null",
-        title:
-          "sudo node $HOME/.signalk/node_modules/signals_raspberry_mcs/postinstall.js",
+        title: `${infoinstall2}`,
       },
       setup: {
         title: "Setup information",
@@ -190,7 +197,7 @@ module.exports = function (app) {
       },
     },
   })
-
+  //Plugin start
   plugin.start = function (options) {
     //1-wire Sensors send data
     function readds18b20() {
@@ -227,7 +234,7 @@ module.exports = function (app) {
     }
     timerreadds18b20 = setInterval(readds18b20, rate * 1000)
   }
-
+  //Plugin stop
   plugin.stop = function () {
     if (timerreadds18b20) {
       clearInterval(timerreadds18b20)
