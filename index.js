@@ -110,7 +110,7 @@ module.exports = function (app) {
       app.error(errorentrys)
       printerrors = "There are errors and warnings. See Server Log"
       infoinstall1 = "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi."
-      infoinstall2 =  "sudo node $HOME/.signalk/node_modules/signals_raspberry_mcs/postinstall.js"
+      infoinstall2 =  "sudo node $HOME/.signalk/node_modules/signalk_raspberry_mcs/postinstall.js"
   }
 
   //Plugin settings
