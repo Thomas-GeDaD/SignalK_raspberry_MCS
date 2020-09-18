@@ -31,7 +31,7 @@ Plugin overview:
 After this all should work.. ;-)  
 
 ## How to use serial interfaces (NMEA0183)
-All 6 serial interfaces should now be availible in the connection tab. You find the unter "Input Type" NMEA0183 , "MMEA0183Source" Serial.  
+All 6 serial interfaces should now be available in the connection tab. You find them under "Input Type" NMEA0183 , "MMEA0183Source" Serial.  
 You can use each interface as "Input" or "Output"  
 
 ![Serial](/data/Picture_MCS_Serial.png)  
@@ -62,9 +62,9 @@ The sample rate should be not less then "number of sensors" x 1s = "sample rate"
 
 ## How to use a digital input (IN1-IN4) for seatalk1 reading
 
-Since the Seatalk1 GPIO reading is implimented in SignalK, ou can use the inputs for ST1 reading.  
+Since the Seatalk1 GPIO reading is implimented in SignalK, you can use the inputs for ST1 reading.  
 Follow the guidline in the [Seatalk(GPIO).md](https://github.com/SignalK/signalk-server/blob/master/Seatalk(GPIO).md)  
-The "Hardware part you can ignore, because it´s done on the MCS board. Only connect the yellow wire to one of the 4 inputs.  
+The "Hardware and software install part you can ignore, because it´s done on the MCS board and on the install process. Only connect the yellow wire to one of the 4 inputs.  
 The IN1-IN4 inputs are assignet as follows:
 |MCS Input|GPIO|
 | ------ | ------ |
