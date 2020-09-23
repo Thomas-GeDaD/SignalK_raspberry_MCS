@@ -45,6 +45,15 @@ var speckeys = [
   "propulsion.2.temperature",
   "propulsion.2.transmission.oilTemperature",
 ]
+var speckeys_Input = [
+    "propulsion.0.revolutions",
+    "propulsion.1.revolutions",
+    "electrical.alternators.0.revolutions",
+    "electrical.alternators.1.revolutions",
+    
+]
+
+
 var error = []
 let plugin = {}
 let timerreadds18b20 = null
@@ -189,8 +198,34 @@ module.exports = function (app) {
               type: "string",
               title: "Signal K Key",
               description:
-                "This is used to build the path in Signal K. It will be appended to environment",
+                "This is used to build the path in Signal K.",
               enum: speckeys,
+            },
+          },
+        },
+      },
+      inputs: {
+        type: "array",
+        title: "Input configurations",
+        items: {
+          type: "object",
+          properties: {
+            oneWireId: {
+              type: "string",
+              title: "Input",
+              enum: ["In1","In2","In3","In4"],
+            },
+            locationName: {
+              type: "string",
+              title: "Input Name",
+              default: "Motor Speed",
+            },
+            key: {
+              type: "string",
+              title: "Signal K Key",
+              description:
+                "This is used to build the path in Signal K.",
+              enum: speckeys_Input,
             },
           },
         },
