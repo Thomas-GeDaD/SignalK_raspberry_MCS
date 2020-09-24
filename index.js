@@ -17,9 +17,10 @@ var Gpio = require("onoff").Gpio
 
 var ttyinterfaces = []
 var sensors = []
+let child1
 
 //availible signalk-deltas
-var speckeys = [
+var speckeys_owire = [
   "environment.inside.engineRoom.temperature",
   "environment.inside.freezer.temperature",
   "environment.inside.heating.temperature",
@@ -50,7 +51,12 @@ var speckeys_Input = [
     "propulsion.1.revolutions",
     "electrical.alternators.0.revolutions",
     "electrical.alternators.1.revolutions",
-    
+    "navigation.lights",
+    "navigation.speedThroughWater",
+    "propulsion.0.state",
+    "propulsion.1.state",
+    "propulsion.0.fuel.rate",
+    "propulsion.1.fuel.rate",
 ]
 
 
@@ -199,7 +205,7 @@ module.exports = function (app) {
               title: "Signal K Key",
               description:
                 "This is used to build the path in Signal K.",
-              enum: speckeys,
+              enum: speckeys_owire,
             },
           },
         },
@@ -234,6 +240,28 @@ module.exports = function (app) {
   })
   //Plugin start
   plugin.start = function (options) {
+
+    //child process for inputs
+    child1 = spawn('python', ['readinputs.py'], { cwd: __dirname })
+    
+    child1.stdout.on('data', data => {
+        console.log(JSON.stringify(JSON.parse(data), null, 2))
+        // app.debug(data.toString())
+        try {
+          app.handleMessage(undefined, JSON.parse(data.toString()))
+        } catch (e) {
+          console.error(e.message)
+        }
+      })
+      child.stderr.on('data', fromChild => {
+        console.error(fromChild.toString())
+      })
+
+      child.on('error', err => {
+        console.error(err)
+      })
+
+
     //1-wire Sensors send data
     function readds18b20() {
       Array.isArray(options.devices) &&
@@ -270,6 +298,13 @@ module.exports = function (app) {
     timerreadds18b20 = setInterval(readds18b20, rate * 1000)
   }
   //Plugin stop
+  //stop child process
+  if (child1) {
+    process.kill(child1.pid)
+    child1 = undefined
+  }
+
+  //stop timer
   plugin.stop = function () {
     if (timerreadds18b20) {
       clearInterval(timerreadds18b20)
