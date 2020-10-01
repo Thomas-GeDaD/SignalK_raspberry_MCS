@@ -14,9 +14,10 @@
 
 const fs = require("fs")
 var Gpio = require("onoff").Gpio
+const { spawn } = require('child_process')
 
 var ttyinterfaces = []
-var sensors = []
+var sensors = ["no sensor conected"]
 let child1
 
 //availible signalk-deltas
@@ -57,6 +58,7 @@ var speckeys_Input = [
     "propulsion.1.state",
     "propulsion.0.fuel.rate",
     "propulsion.1.fuel.rate",
+    "seatalk1",
 ]
 
 
@@ -144,6 +146,9 @@ module.exports = function (app) {
   try {
     fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
       if (item.slice(0, 2) == 28) {
+        if (sensors== "no sensor conected"){
+          sensors=[]
+        }
         sensors.push(item)
       }
     })
@@ -216,7 +221,7 @@ module.exports = function (app) {
         items: {
           type: "object",
           properties: {
-            oneWireId: {
+            inputID: {
               type: "string",
               title: "Input",
               enum: ["In1","In2","In3","In4"],
@@ -225,6 +230,11 @@ module.exports = function (app) {
               type: "string",
               title: "Input Name",
               default: "Motor Speed",
+            },
+            multiplier: {
+              type: "string",
+              title: "multiplier",
+              default: "1",
             },
             key: {
               type: "string",
@@ -242,25 +252,29 @@ module.exports = function (app) {
   plugin.start = function (options) {
 
     //child process for inputs
-    child1 = spawn('python', ['readinputs.py'], { cwd: __dirname })
+    child1 = spawn('python3', ['readinputs.py'], { cwd: __dirname })
     
     child1.stdout.on('data', data => {
-        console.log(JSON.stringify(JSON.parse(data), null, 2))
-        // app.debug(data.toString())
+        //console.log(data.toString())
+        //console.log(JSON.stringify(JSON.parse(data), null, 2))
+        
         try {
+          console.log(data.toString())
           app.handleMessage(undefined, JSON.parse(data.toString()))
         } catch (e) {
           console.error(e.message)
         }
       })
-      child.stderr.on('data', fromChild => {
+      child1.stderr.on('data', fromChild => {
         console.error(fromChild.toString())
       })
 
-      child.on('error', err => {
+      child1.on('error', err => {
         console.error(err)
       })
 
+      child1.stdin.write (JSON.stringify(options))//(JSON.stringify(options))
+      child1.stdin.write('\n')
 
     //1-wire Sensors send data
     function readds18b20() {
@@ -295,7 +309,9 @@ module.exports = function (app) {
     if (rate < 10) {
       rate = 10
     }
-    timerreadds18b20 = setInterval(readds18b20, rate * 1000)
+    if (sensors!= "no sensor conected" ){
+      timerreadds18b20 = setInterval(readds18b20, rate * 1000)
+    }
   }
   //Plugin stop
   //stop child process
