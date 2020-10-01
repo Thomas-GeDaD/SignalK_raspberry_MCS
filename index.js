@@ -259,7 +259,7 @@ module.exports = function (app) {
         //console.log(JSON.stringify(JSON.parse(data), null, 2))
         
         try {
-          console.log(data.toString())
+          app.debug(data.toString())
           app.handleMessage(undefined, JSON.parse(data.toString()))
         } catch (e) {
           console.error(e.message)
@@ -286,7 +286,7 @@ module.exports = function (app) {
               "utf8"
             )
             indext = temp.indexOf("t=")
-            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273
+            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + -273.15
             app.debug(
               "signalKKey: " +
                 getsensor["key"] +
