@@ -9,10 +9,10 @@ freq = [
     "electrical.alternators.1.revolutions",
     "propulsion.0.fuel.rate",
     "propulsion.1.fuel.rate",
+    "navigation.speedThroughWater",
 ]
 state= [
     "navigation.lights",
-    "navigation.speedThroughWater",
     "propulsion.0.state",
     "propulsion.1.state",
 
