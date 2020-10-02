@@ -1,5 +1,8 @@
 # SignalK_raspberry_MCS
 SignalK Plugin to provide MCS functionality to SignalK  
+
+The Plugin only works on Raspberry OS Jessy / Buster!!  
+
 Attention: the postinstall.js scripts need sudo privilegs!
 
 ## Overview:  
