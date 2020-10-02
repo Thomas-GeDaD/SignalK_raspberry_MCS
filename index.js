@@ -1,202 +1,349 @@
-import sys, json, threading, time, random, os , pigpio, socket, statistics
-import RPi.GPIO as GPIO
-from time import perf_counter
-##frequence string:
-freq = [
+/*
+ * Copyright 2020 Thomas Gersmann - GeDaD <t.gersmann@gedad.de>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const fs = require("fs")
+var Gpio = require("onoff").Gpio
+const { spawn } = require('child_process')
+
+var ttyinterfaces = []
+var sensors = ["no sensor conected"]
+let child1
+
+//availible signalk-deltas
+var speckeys_owire = [
+  "environment.inside.engineRoom.temperature",
+  "environment.inside.freezer.temperature",
+  "environment.inside.heating.temperature",
+  "environment.inside.mainCabin.temperature",
+  "environment.inside.refrigerator.temperature",
+  "environment.inside.temperature",
+  "environment.outside.apparentWindChillTemperature",
+  "environment.outside.dewPointTemperature",
+  "environment.outside.heatIndexTemperature",
+  "environment.outside.temperature",
+  "environment.outside.theoreticalWindChillTemperature",
+  "environment.water.baitWell.temperature",
+  "environment.water.liveWell.temperature",
+  "environment.water.temperature",
+  "propulsion.1.coolantTemperature",
+  "propulsion.1.exhaustTemperature",
+  "propulsion.1.oilTemperature",
+  "propulsion.1.temperature",
+  "propulsion.1.transmission.oilTemperature",
+  "propulsion.2.coolantTemperature",
+  "propulsion.2.exhaustTemperature",
+  "propulsion.2.oilTemperature",
+  "propulsion.2.temperature",
+  "propulsion.2.transmission.oilTemperature",
+]
+var speckeys_Input = [
     "propulsion.0.revolutions",
     "propulsion.1.revolutions",
     "electrical.alternators.0.revolutions",
     "electrical.alternators.1.revolutions",
-    "propulsion.0.fuel.rate",
-    "propulsion.1.fuel.rate",
-    "navigation.speedThroughWater",
-]
-state= [
     "navigation.lights",
+    "navigation.speedThroughWater",
     "propulsion.0.state",
     "propulsion.1.state",
+    "propulsion.0.fuel.rate",
+    "propulsion.1.fuel.rate",
 ]
 
-################################################################## classes
-class MeasureFrequency(object):
-    
-    def __init__(self, channel):
-        GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        self.channel = channel
-        self.pulse1 = 0
-        self.pulsetime1=perf_counter()
-        self.freq=0
-        self.data = []
 
-    def _interrupt_counter(self, channel):
-        diff = perf_counter()-self.pulsetime1
-        self.pulsetime1=perf_counter()
-        self.data.append(diff)
+var error = []
+let plugin = {}
+let timerreadds18b20 = null
+var printerrors = "no errors or warnings"
+var infoinstall1 = ""
+var infoinstall2 =  "=> postinstall is done"
+
+module.exports = function (app) {
+  //check os entrys:
+  function check_entrys() {
+    var data = fs.readFileSync("/boot/config.txt", "utf8")
+    if (
+      data.indexOf(
+        "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600"
+      ) == -1
+    ) {
+      error.push("error dt-overlay sc16is752 0x4c")
+    }
+    if (
+      data.indexOf(
+        "dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600"
+      ) == -1
+    ) {
+      error.push("error dt-overlay sc16is752 0x49")
+    }
+    if (
+      data.indexOf(
+        "dtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600"
+      ) == -1
+    ) {
+      error.push("error dt-overlay sc16is752 0x48")
+    }
+    if (
+      data.indexOf("dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25"
+      ) == -1
+    ) {
+      error.push("error dt-overlay mcp2515")
+    }
+    if (data.indexOf("dtoverlay=spi-bcm2835-overlay"
+      ) == -1
+    ) {
+      error.push("error dt-overlay spi bcm2835")
+    }
+    var can0 = fs.readdirSync("/etc/network/interfaces.d/")
+    if (can0.includes("can0") == false) {
+      error.push("error interfaces.d can0")
+    }
+    var modules = fs.readFileSync("/etc/modules", "utf8")
+    if (modules.includes("i2c_dev") == false) {
+      error.push("error i2c_dev in modules")
+    }
+    if (modules.includes("ds2482") == false) {
+      error.push("error ds2482 in modules")
+    }
+    if (modules.includes("wire") == false) {
+      error.push("error wire in modules")
+    }
+    return error
+  }
+  //handle error
+  var errorentrys = check_entrys()
+  if (errorentrys != ""){
+      app.error(errorentrys)
+      printerrors = "There are errors and warnings. See Server Log"
+      infoinstall1 = "Before you can start, execute the folowing command in a terminal! This installs all system config on your pi."
+      infoinstall2 =  "sudo node $HOME/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js"
+  }
+
+  //Plugin settings
+  plugin.id = "SignalK_raspberry_MCS"
+  plugin.name = "Raspberry_MCS Plugin"
+  plugin.description = "SignalK Plugin to provide MCS functionality to SignalK"
+
+  //read tty interfaces
+  fs.readdirSync("/dev/").forEach((item) => {
+    if (item.includes("ttySC")) {
+      ttyinterfaces.push("  /dev/"+item +" ")
+    }
+  })
+
+  //read 1-wire sensors
+  try {
+    fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
+      if (item.slice(0, 2) == 28) {
+        if (sensors== "no sensor conected"){
+          sensors=[]
+        }
+        sensors.push(item)
+      }
+    })
+  } catch {
+    app.error("1-wire devices are not reachable")
+  }
+
+  //Plugin shema
+  plugin.schema = () => ({
+    title: "Enable autoshutdown.",
+    description: `${infoinstall1}`,
+    type: "object",
+    required: ["oneWireId"],
+    properties: {
+      active: {
+        type: "null",
+        title: `${infoinstall2}`,
+      },
+      setup: {
+        title: "Setup information",
+        type: "object",
+        properties: {
+          information1: {
+            title: "Available tty (nmea0183) interfaces of the MCS-Board:",
+            description: `${ttyinterfaces}`,
+            type: "null",
+          },
+          information2: {
+            title: "If there is an error: (see also Server log):",
+            description: `${printerrors}`,
+            type: "null",
+          },
+        },
+      },
+      rate: {
+        title: "Sample Rate 1-wire Sensor (in seconds)",
+        description: "should be >1s each sensor!, min 10s",
+        type: "number",
+        default: 30,
+      },
+      devices: {
+        type: "array",
+        title: "1-Wire Sensors (DS18B20)",
+        items: {
+          type: "object",
+          properties: {
+            oneWireId: {
+              type: "string",
+              title: "Sensor Id",
+              enum: sensors,
+            },
+            locationName: {
+              type: "string",
+              title: "Location name",
+              default: "Engine room",
+            },
+            key: {
+              type: "string",
+              title: "Signal K Key",
+              description:
+                "This is used to build the path in Signal K.",
+              enum: speckeys_owire,
+            },
+          },
+        },
+      },
+      inputs: {
+        type: "array",
+        title: "Input configurations",
+        items: {
+          type: "object",
+          properties: {
+            inputID: {
+              type: "string",
+              title: "Input",
+              enum: ["In1","In2","In3","In4"],
+            },
+            locationName: {
+              type: "string",
+              title: "Input Name",
+              default: "Motor Speed",
+            },
+            multiplier: {
+              type: "string",
+              title: "multiplier",
+              default: "1",
+            },
+            key: {
+              type: "string",
+              title: "Signal K Key",
+              description:
+                "This is used to build the path in Signal K.",
+              enum: speckeys_Input,
+            },
+          },
+        },
+      },
+    },
+  })
+  //Plugin start
+  plugin.start = function (options) {
+
+    //child process for inputs
+    child1 = spawn('python3', ['readinputs.py'], { cwd: __dirname })
+    
+    child1.stdout.on('data', data => {
+        //console.log(data.toString())
+        //console.log(JSON.stringify(JSON.parse(data), null, 2))
         
+        try {
+          app.debug(data.toString())
+          app.handleMessage(undefined, JSON.parse(data.toString()))
+        } catch (e) {
+          console.error(e.message)
+        }
+      })
+      child1.stderr.on('data', fromChild => {
+        console.error(fromChild.toString())
+      })
 
-    def frequency(self):
-        sum_=0
-        count=0
-        freq=0
-        try:
-            freq=statistics.mean(self.data)
-            freq=1/freq
-        except:
-            freq=0
-        self.data=[]
-        return freq
-    def start(self):
-        GPIO.add_event_detect(self.channel, GPIO.RISING,
-                              callback=self._interrupt_counter,
-                              bouncetime=1)
+      child1.on('error', err => {
+        console.error(err)
+      })
 
-class MovingAverage:
-    def __init__(self,factor):
-        self.factor=float(factor)
-        self.current=0
+      child1.stdin.write (JSON.stringify(options))//(JSON.stringify(options))
+      child1.stdin.write('\n')
 
-    def add(self,value):
-        fv=float(value)
-        diff=fv-self.current
-        self.current+=self.factor*diff
+    //1-wire Sensors send data
+    function readds18b20() {
+      Array.isArray(options.devices) &&
+        options.devices.forEach((getsensor) => {
+          try {
+            var temp = fs.readFileSync(
+              "/sys/bus/w1/devices/" + getsensor["oneWireId"] + "/w1_slave",
+              "utf8"
+            )
+            indext = temp.indexOf("t=")
+            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273.15
+            app.debug(
+              "signalKKey: " +
+                getsensor["key"] +
+                "    SensorID: " +
+                getsensor["oneWireId"] +
+                "    Value: " +
+                temp
+            )
+            var delta = createDeltaMessage(getsensor["key"], temp)
+            app.handleMessage(plugin.id, delta)
+          } catch {
+            app.error(
+              "Configured Sensor is not reachable:" +
+                getsensor["oneWireId"]
+            )
+          }
+        })
+    }
+    var rate = options.rate
+    if (rate < 10) {
+      rate = 10
+    }
+    if (sensors!= "no sensor conected" ){
+      timerreadds18b20 = setInterval(readds18b20, rate * 1000)
+    }
+  }
+  //Plugin stop
+  //stop child process
+  if (child1) {
+    process.kill(child1.pid)
+    child1 = undefined
+  }
 
-    def value(self):
-        return self.current
+  //stop timer
+  plugin.stop = function () {
+    if (timerreadds18b20) {
+      clearInterval(timerreadds18b20)
+    }
+  }
 
-
-
-## GPIO settings
-GPIO.setmode(GPIO.BCM)
-
-#handle options
-x=sys.stdin.readline()
-data=json.dumps(x)
-y = json.loads(x)
-inputs= y["inputs"]
-
-In1_ =False
-In2_ =False
-In3_ =False
-In4_ =False
-
-#check for configurated inputs and his task:
-count=0
-for i in inputs:
-    inputs_=inputs[count]
-
-    ##conf input 1
-    if inputs_["inputID"]=="In1":
-        In1=i
-        In1_=True
-        if In1["key"] in freq:
-            In1task="freq"
-            measure1=MeasureFrequency(19)
-            measure1.start()
-            average1=MovingAverage(0.6)
-        if In1["key"] in state:
-            In1task="state"
-            GPIO.setup(19, GPIO.IN)
-
-    ##conf input 2
-    if inputs_["inputID"]=="In2":
-        In2=i
-        In2_=True
-        if In2["key"] in freq:
-            In2task="freq"
-            measure2=MeasureFrequency(16)
-            measure2.start()
-            average2=MovingAverage(0.6)
-        if In2["key"] in state:
-            In2task="state"
-            GPIO.setup(16, GPIO.IN)
-
-    ##conf input 3        
-    if inputs_["inputID"]=="In3":
-        In3=i
-        In3_=True
-        if In3["key"] in freq:
-            In3task="freq"
-            measure3=MeasureFrequency(26)
-            measure3.start()
-            average3=MovingAverage(0.6)
-        if In3["key"] in state:
-            In3task="state"
-            GPIO.setup(26, GPIO.IN)
-
-     ##conf input 4       
-    if inputs_["inputID"]=="In4":
-        In4=i
-        In4_=True
-        if In4["key"] in freq:
-            In4task="freq"
-            measure4=MeasureFrequency(20)
-            measure4.start()
-            average4=MovingAverage(0.6)
-        if In4["key"] in state:
-            In4task="state"
-            GPIO.setup(20, GPIO.IN)
-
-    count+=1
-
-################################################################ MAIN    
-while True:
-    values=[]
-    if In1_:
-        if In1task=="freq":
-            freq1=measure1.frequency()
-            average1.add(freq1)
-            freq1_=average1.value()
-            freq1_=freq1_*float(In1["multiplier"])
-            freq1_=round(freq1_,2)
-            values.append( {'path': In1["key"] , 'value': freq1_ } )
-
-        if In1task=="state":
-            values.append( {'path': In1["key"] , 'value': GPIO.input(19) } )
-
-    if In2_:
-        if In2task=="freq":
-            freq2=measure2.frequency()
-            average2.add(freq2)
-            freq2_=average2.value()
-            freq2_=freq2_*float(In2["multiplier"])
-            freq2_=round(freq2_,2)
-            values.append( {'path': In2["key"] , 'value': freq2_ } )    
-
-        if In2task=="state":
-            values.append( {'path': In2["key"] , 'value': GPIO.input(16) } )
-
-    if In3_:
-        if In3task=="freq":
-            freq3=measure3.frequency()
-            average3.add(freq3)
-            freq3_=average3.value()
-            freq3_=freq3_*float(In3["multiplier"])
-            freq3_=round(freq3_,2)
-            values.append( {'path': In3["key"] , 'value': freq3_ } )
-
-        if In3task=="state":
-            values.append( {'path': In3["key"] , 'value': GPIO.input(26) } )
-
-    if In4_:
-        if In3task=="freq":
-            freq4=measure4.frequency()
-            average4.add(freq4)
-            freq4_=average4.value()
-            freq4_=freq4_*float(In4["multiplier"])
-            freq4_=round(freq4_,2)
-            values.append( {'path': In4["key"] , 'value': freq4_ } )
-
-        if In4task=="state":
-            values.append( {'path': In4["key"] , 'value': GPIO.input(20) } )
-
-    if values:
-        signalkdata = {'updates': [{ 'values': values}]}
-
-        sys.stdout.write(json.dumps(signalkdata)) 
-        sys.stdout.write('\n')
-        sys.stdout.flush()
-    
-
-    #sys.stderr.write(str(values))
-    #sys.stderr.flush()
-    time.sleep(0.2)
+  //create the delta message
+  function createDeltaMessage(path, value) {
+    return {
+      context: "vessels." + app.selfId,
+      updates: [
+        {
+          source: {
+            label: plugin.id,
+          },
+          values: [
+            {
+              path,
+              value,
+            },
+          ],
+        },
+      ],
+    }
+  }
+  return plugin
+}
