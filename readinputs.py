@@ -15,7 +15,6 @@ state= [
     "navigation.lights",
     "propulsion.0.state",
     "propulsion.1.state",
-
 ]
 
 ################################################################## classes
@@ -68,33 +67,9 @@ class MovingAverage:
 
 ## GPIO settings
 GPIO.setmode(GPIO.BCM)
-try:
-    #os.system("sudo pigpiod")
-    #time.sleep(2)
-    pass
-except: pass
-try:
-    st1read =pigpio.pi()
-except: pass
 
-try:
-    st1read.bb_serial_read_close(19) #close if already run
-except: pass
-try:
-    st1read.bb_serial_read_close(16) #close if already run
-except: pass
-try:
-    st1read.bb_serial_read_close(26) #close if already run
-except: pass
-try:
-    st1read.bb_serial_read_close(20) #close if already run
-except: pass
-
-
+#handle options
 x=sys.stdin.readline()
-
-#sys.stderr.write(x)
-
 data=json.dumps(x)
 y = json.loads(x)
 inputs= y["inputs"]
@@ -108,6 +83,8 @@ In4_ =False
 count=0
 for i in inputs:
     inputs_=inputs[count]
+
+    ##conf input 1
     if inputs_["inputID"]=="In1":
         In1=i
         In1_=True
@@ -118,8 +95,9 @@ for i in inputs:
             average1=MovingAverage(0.6)
         if In1["key"] in state:
             In1task="state"
-        if In1["key"]=="seatalk1":
-            In1task="st1"
+            GPIO.setup(19, GPIO.IN)
+
+    ##conf input 2
     if inputs_["inputID"]=="In2":
         In2=i
         In2_=True
@@ -130,8 +108,9 @@ for i in inputs:
             average2=MovingAverage(0.6)
         if In2["key"] in state:
             In2task="state"
-        if In2["key"]=="seatalk1":
-            In2task="st1"
+            GPIO.setup(16, GPIO.IN)
+
+    ##conf input 3        
     if inputs_["inputID"]=="In3":
         In3=i
         In3_=True
@@ -142,8 +121,9 @@ for i in inputs:
             average3=MovingAverage(0.6)
         if In3["key"] in state:
             In3task="state"
-        if In3["key"]=="seatalk1":
-            In3task="st1"
+            GPIO.setup(26, GPIO.IN)
+
+     ##conf input 4       
     if inputs_["inputID"]=="In4":
         In4=i
         In4_=True
@@ -154,8 +134,8 @@ for i in inputs:
             average4=MovingAverage(0.6)
         if In4["key"] in state:
             In4task="state"
-        if In4["key"]=="seatalk1":
-            In4task="st1"
+            GPIO.setup(20, GPIO.IN)
+
     count+=1
 
 ################################################################ MAIN    
@@ -169,6 +149,10 @@ while True:
             freq1_=freq1_*float(In1["multiplier"])
             freq1_=round(freq1_,2)
             values.append( {'path': In1["key"] , 'value': freq1_ } )
+
+        if In1task=="state":
+            values.append( {'path': In1["key"] , 'value': GPIO.input(19) } )
+
     if In2_:
         if In2task=="freq":
             freq2=measure2.frequency()
@@ -176,7 +160,11 @@ while True:
             freq2_=average2.value()
             freq2_=freq2_*float(In2["multiplier"])
             freq2_=round(freq2_,2)
-            values.append( {'path': In2["key"] , 'value': freq2_ } )       
+            values.append( {'path': In2["key"] , 'value': freq2_ } )    
+
+        if In2task=="state":
+            values.append( {'path': In2["key"] , 'value': GPIO.input(16) } )
+
     if In3_:
         if In3task=="freq":
             freq3=measure3.frequency()
@@ -185,6 +173,10 @@ while True:
             freq3_=freq3_*float(In3["multiplier"])
             freq3_=round(freq3_,2)
             values.append( {'path': In3["key"] , 'value': freq3_ } )
+
+        if In3task=="state":
+            values.append( {'path': In3["key"] , 'value': GPIO.input(26) } )
+
     if In4_:
         if In3task=="freq":
             freq4=measure4.frequency()
@@ -193,6 +185,10 @@ while True:
             freq4_=freq4_*float(In4["multiplier"])
             freq4_=round(freq4_,2)
             values.append( {'path': In4["key"] , 'value': freq4_ } )
+
+        if In4task=="state":
+            values.append( {'path': In4["key"] , 'value': GPIO.input(20) } )
+
     if values:
         signalkdata = {'updates': [{ 'values': values}]}
 
@@ -204,6 +200,3 @@ while True:
     #sys.stderr.write(str(values))
     #sys.stderr.flush()
     time.sleep(0.2)
-
-
-
