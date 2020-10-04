@@ -254,12 +254,16 @@ module.exports = function (app) {
     child1 = spawn('python3', ['readinputs.py'], { cwd: __dirname })
     
     child1.stdout.on('data', data => {
-        //console.log(data.toString())
-        //console.log(JSON.stringify(JSON.parse(data), null, 2))
-        
+
+
         try {
-          app.debug(data.toString())
-          app.handleMessage(undefined, JSON.parse(data.toString()))
+            data.toString().split(/\r?\n/).forEach(line => {
+                if (line.length > 0) {
+                  app.handleMessage(undefined, JSON.parse(line))
+                  app.debug(data.toString())
+                  // console.log(JSON.stringify(line))
+                }
+              })
         } catch (e) {
           console.error(e.message)
         }
@@ -272,7 +276,7 @@ module.exports = function (app) {
         console.error(err)
       })
 
-      child1.stdin.write (JSON.stringify(options))//(JSON.stringify(options))
+      child1.stdin.write (JSON.stringify(options))
       child1.stdin.write('\n')
 
     //1-wire Sensors send data
