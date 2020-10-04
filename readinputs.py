@@ -1,3 +1,19 @@
+
+#!/usr/bin/env python3
+"""
+ * Copyright 2020 Thomas Gersmann - GeDaD <t.gersmann@gedad.de>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+"""
+
 import sys, json, threading, time, random, os , pigpio, socket, statistics
 import RPi.GPIO as GPIO
 from time import perf_counter
@@ -151,7 +167,7 @@ while True:
             values.append( {'path': In1["key"] , 'value': freq1_ } )
 
         if In1task=="state":
-            values.append( {'path': In1["key"] , 'value': GPIO.input(19) } )
+            values.append( {'path': In1["key"] , 'value': GPIO.input(19) })
 
     if In2_:
         if In2task=="freq":
@@ -163,7 +179,7 @@ while True:
             values.append( {'path': In2["key"] , 'value': freq2_ } )    
 
         if In2task=="state":
-            values.append( {'path': In2["key"] , 'value': GPIO.input(16) } )
+            values.append( {'path': In2["key"] , 'value': GPIO.input(16) })
 
     if In3_:
         if In3task=="freq":
@@ -175,7 +191,7 @@ while True:
             values.append( {'path': In3["key"] , 'value': freq3_ } )
 
         if In3task=="state":
-            values.append( {'path': In3["key"] , 'value': GPIO.input(26) } )
+            values.append( {'path': In3["key"] , 'value': GPIO.input(26) })
 
     if In4_:
         if In3task=="freq":
@@ -187,13 +203,11 @@ while True:
             values.append( {'path': In4["key"] , 'value': freq4_ } )
 
         if In4task=="state":
-            values.append( {'path': In4["key"] , 'value': GPIO.input(20) } )
+            values.append( {'path': In4["key"] , 'value': GPIO.input(20) })
 
     if values:
         signalkdata = {'updates': [{ 'values': values}]}
-
-        sys.stdout.write(json.dumps(signalkdata)) 
-        sys.stdout.write('\n')
+        sys.stdout.write(json.dumps(signalkdata) + '\n' )#+ json.dumps(signalkdata)
         sys.stdout.flush()
     
 
