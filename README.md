@@ -1,5 +1,8 @@
 # SignalK_raspberry_MCS
 SignalK Plugin to provide MCS functionality to SignalK  
+
+The Plugin only works on Raspberry OS Jessy / Buster!!  
+
 Attention: the postinstall.js scripts need sudo privilegs!
 
 ## Overview:  
@@ -72,6 +75,18 @@ The IN1-IN4 inputs are assignet as follows:
 |In2|GPIO16|
 |In3|GPIO26|
 |In4|GPIO20|
+
+## How to use a digital input (IN1-IN4) for state and frequency reading  
+You can connect different Sensors to the IN1-IN4 as for example a switch, a bilge float or you can read fruequency with it such as Terminal W of your alternator or a sensor on the crankshaft. The kind of the Sensor is defined by the SignalK delta. If you use a delta for a state, it is handle as a state. If you use a delta for rpm,m/s or something else it is defined as a frequency.  
+Here you see an example for rpm measurment and the Engine state:  
+![In1-In4](/data/Picture_MCS_IN1_IN4.png)
+
+If you not directly measure the true frequency like a alternator with a ratio or a paddle wheel, you can define a multiplier. So if you get a frequency of:  
+(for info: 1000rpm/60=frequency => 16,6Hz) 
+Your Engine rotates with a speed of 1000rpm (16,6Hz) and the Delta shows you 33,2Hz => you must use a multipier of 0.5
+
+Further example:
+You want to measure your boat speed with a paddle wheel. If your paddle wheel creates 6 pulses at 1m/s boat speed you have to use a multiplier of 1/6 => 0.166 Then you get directly m/s.
 
 
 ## General 
