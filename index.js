@@ -14,12 +14,14 @@
 
 const fs = require("fs")
 var Gpio = require("onoff").Gpio
+const { spawn } = require('child_process')
 
 var ttyinterfaces = []
-var sensors = []
+var sensors = ["no sensor conected"]
+let child1
 
 //availible signalk-deltas
-var speckeys = [
+var speckeys_owire = [
   "environment.inside.engineRoom.temperature",
   "environment.inside.freezer.temperature",
   "environment.inside.heating.temperature",
@@ -45,6 +47,20 @@ var speckeys = [
   "propulsion.2.temperature",
   "propulsion.2.transmission.oilTemperature",
 ]
+var speckeys_Input = [
+    "propulsion.0.revolutions",
+    "propulsion.1.revolutions",
+    "electrical.alternators.0.revolutions",
+    "electrical.alternators.1.revolutions",
+    "navigation.lights",
+    "navigation.speedThroughWater",
+    "propulsion.0.state",
+    "propulsion.1.state",
+    "propulsion.0.fuel.rate",
+    "propulsion.1.fuel.rate",
+]
+
+
 var error = []
 let plugin = {}
 let timerreadds18b20 = null
@@ -129,6 +145,9 @@ module.exports = function (app) {
   try {
     fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
       if (item.slice(0, 2) == 28) {
+        if (sensors== "no sensor conected"){
+          sensors=[]
+        }
         sensors.push(item)
       }
     })
@@ -189,8 +208,39 @@ module.exports = function (app) {
               type: "string",
               title: "Signal K Key",
               description:
-                "This is used to build the path in Signal K. It will be appended to environment",
-              enum: speckeys,
+                "This is used to build the path in Signal K.",
+              enum: speckeys_owire,
+            },
+          },
+        },
+      },
+      inputs: {
+        type: "array",
+        title: "Input configurations",
+        items: {
+          type: "object",
+          properties: {
+            inputID: {
+              type: "string",
+              title: "Input",
+              enum: ["In1","In2","In3","In4"],
+            },
+            locationName: {
+              type: "string",
+              title: "Input Name",
+              default: "Motor Speed",
+            },
+            multiplier: {
+              type: "string",
+              title: "multiplier",
+              default: "1",
+            },
+            key: {
+              type: "string",
+              title: "Signal K Key",
+              description:
+                "This is used to build the path in Signal K.",
+              enum: speckeys_Input,
             },
           },
         },
@@ -199,6 +249,36 @@ module.exports = function (app) {
   })
   //Plugin start
   plugin.start = function (options) {
+
+    //child process for inputs
+    child1 = spawn('python3', ['readinputs.py'], { cwd: __dirname })
+    
+    child1.stdout.on('data', data => {
+
+
+        try {
+            data.toString().split(/\r?\n/).forEach(line => {
+                if (line.length > 0) {
+                  app.handleMessage(undefined, JSON.parse(line))
+                  app.debug(data.toString())
+                  // console.log(JSON.stringify(line))
+                }
+              })
+        } catch (e) {
+          console.error(e.message)
+        }
+      })
+      child1.stderr.on('data', fromChild => {
+        console.error(fromChild.toString())
+      })
+
+      child1.on('error', err => {
+        console.error(err)
+      })
+
+      child1.stdin.write (JSON.stringify(options))
+      child1.stdin.write('\n')
+
     //1-wire Sensors send data
     function readds18b20() {
       Array.isArray(options.devices) &&
@@ -209,7 +289,7 @@ module.exports = function (app) {
               "utf8"
             )
             indext = temp.indexOf("t=")
-            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273
+            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273.15
             app.debug(
               "signalKKey: " +
                 getsensor["key"] +
@@ -232,9 +312,18 @@ module.exports = function (app) {
     if (rate < 10) {
       rate = 10
     }
-    timerreadds18b20 = setInterval(readds18b20, rate * 1000)
+    if (sensors!= "no sensor conected" ){
+      timerreadds18b20 = setInterval(readds18b20, rate * 1000)
+    }
   }
   //Plugin stop
+  //stop child process
+  if (child1) {
+    process.kill(child1.pid)
+    child1 = undefined
+  }
+
+  //stop timer
   plugin.stop = function () {
     if (timerreadds18b20) {
       clearInterval(timerreadds18b20)
