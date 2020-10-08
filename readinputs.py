@@ -88,7 +88,8 @@ GPIO.setmode(GPIO.BCM)
 x=sys.stdin.readline()
 data=json.dumps(x)
 y = json.loads(x)
-inputs= y["inputs"]
+if y["inputs"]:
+    inputs= y["inputs"]
 
 In1_ =False
 In2_ =False
@@ -194,7 +195,7 @@ while True:
             values.append( {'path': In3["key"] , 'value': GPIO.input(26) })
 
     if In4_:
-        if In3task=="freq":
+        if In4task=="freq":
             freq4=measure4.frequency()
             average4.add(freq4)
             freq4_=average4.value()
