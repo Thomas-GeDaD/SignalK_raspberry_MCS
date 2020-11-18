@@ -98,6 +98,6 @@ Don´t forget to save the plugin settings after changes. ;-)
 
 
 
-###Changelog:
+### Changelog:
 
 -1.0.6: Fix issue in readinputs if the inputs are empty. Fix childprocess kill in index after restart of the Plugin
