@@ -85,11 +85,13 @@ class MovingAverage:
 GPIO.setmode(GPIO.BCM)
 
 #handle options
+inputsav=False
 x=sys.stdin.readline()
 data=json.dumps(x)
 y = json.loads(x)
 if y["inputs"]:
     inputs= y["inputs"]
+    inputsav=True
 
 In1_ =False
 In2_ =False
@@ -98,62 +100,63 @@ In4_ =False
 
 #check for configurated inputs and his task:
 count=0
-for i in inputs:
-    inputs_=inputs[count]
+if inputsav==True:
+    for i in inputs:
+        inputs_=inputs[count]
 
-    ##conf input 1
-    if inputs_["inputID"]=="In1":
-        In1=i
-        In1_=True
-        if In1["key"] in freq:
-            In1task="freq"
-            measure1=MeasureFrequency(19)
-            measure1.start()
-            average1=MovingAverage(0.6)
-        if In1["key"] in state:
-            In1task="state"
-            GPIO.setup(19, GPIO.IN)
+        ##conf input 1
+        if inputs_["inputID"]=="In1":
+            In1=i
+            In1_=True
+            if In1["key"] in freq:
+                In1task="freq"
+                measure1=MeasureFrequency(19)
+                measure1.start()
+                average1=MovingAverage(0.6)
+            if In1["key"] in state:
+                In1task="state"
+                GPIO.setup(19, GPIO.IN)
 
-    ##conf input 2
-    if inputs_["inputID"]=="In2":
-        In2=i
-        In2_=True
-        if In2["key"] in freq:
-            In2task="freq"
-            measure2=MeasureFrequency(16)
-            measure2.start()
-            average2=MovingAverage(0.6)
-        if In2["key"] in state:
-            In2task="state"
-            GPIO.setup(16, GPIO.IN)
+        ##conf input 2
+        if inputs_["inputID"]=="In2":
+            In2=i
+            In2_=True
+            if In2["key"] in freq:
+                In2task="freq"
+                measure2=MeasureFrequency(16)
+                measure2.start()
+                average2=MovingAverage(0.6)
+            if In2["key"] in state:
+                In2task="state"
+                GPIO.setup(16, GPIO.IN)
 
-    ##conf input 3        
-    if inputs_["inputID"]=="In3":
-        In3=i
-        In3_=True
-        if In3["key"] in freq:
-            In3task="freq"
-            measure3=MeasureFrequency(26)
-            measure3.start()
-            average3=MovingAverage(0.6)
-        if In3["key"] in state:
-            In3task="state"
-            GPIO.setup(26, GPIO.IN)
+        ##conf input 3        
+        if inputs_["inputID"]=="In3":
+            In3=i
+            In3_=True
+            if In3["key"] in freq:
+                In3task="freq"
+                measure3=MeasureFrequency(26)
+                measure3.start()
+                average3=MovingAverage(0.6)
+            if In3["key"] in state:
+                In3task="state"
+                GPIO.setup(26, GPIO.IN)
 
-     ##conf input 4       
-    if inputs_["inputID"]=="In4":
-        In4=i
-        In4_=True
-        if In4["key"] in freq:
-            In4task="freq"
-            measure4=MeasureFrequency(20)
-            measure4.start()
-            average4=MovingAverage(0.6)
-        if In4["key"] in state:
-            In4task="state"
-            GPIO.setup(20, GPIO.IN)
+         ##conf input 4       
+        if inputs_["inputID"]=="In4":
+            In4=i
+            In4_=True
+            if In4["key"] in freq:
+                In4task="freq"
+                measure4=MeasureFrequency(20)
+                measure4.start()
+                average4=MovingAverage(0.6)
+            if In4["key"] in state:
+                In4task="state"
+                GPIO.setup(20, GPIO.IN)
 
-    count+=1
+        count+=1
 
 ################################################################ MAIN    
 while True:
