@@ -217,6 +217,7 @@ module.exports = function (app) {
       inputs: {
         type: "array",
         title: "Input configurations",
+        required: ["inputID","key"],
         items: {
           type: "object",
           properties: {
@@ -317,16 +318,14 @@ module.exports = function (app) {
     }
   }
   //Plugin stop
-  //stop child process
-  if (child1) {
-    process.kill(child1.pid)
-    child1 = undefined
-  }
-
-  //stop timer
+ 
   plugin.stop = function () {
     if (timerreadds18b20) {
       clearInterval(timerreadds18b20)
+    }
+    if (child1) {
+      process.kill(child1.pid)
+      child1 = undefined
     }
   }
 
