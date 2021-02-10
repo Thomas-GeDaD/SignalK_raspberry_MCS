@@ -211,6 +211,11 @@ module.exports = function (app) {
                 "This is used to build the path in Signal K.",
               enum: speckeys_owire,
             },
+            offset: {
+                type: "string",
+                title: "Temp offset",
+                default: "0",
+              },
           },
         },
       },
@@ -290,7 +295,7 @@ module.exports = function (app) {
               "utf8"
             )
             indext = temp.indexOf("t=")
-            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273.15
+            temp = temp.slice(temp.indexOf("t=") + 2, -1) / 1000 + 273.15 + parseFloat(getsensor["offset"])
             app.debug(
               "signalKKey: " +
                 getsensor["key"] +
@@ -310,8 +315,8 @@ module.exports = function (app) {
         })
     }
     var rate = options.rate
-    if (rate < 10) {
-      rate = 10
+    if (rate < 6) {
+      rate = 6
     }
     if (sensors!= "no sensor conected" ){
       timerreadds18b20 = setInterval(readds18b20, rate * 1000)
