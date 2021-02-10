@@ -86,12 +86,15 @@ GPIO.setmode(GPIO.BCM)
 
 #handle options
 inputsav=False
-x=sys.stdin.readline()
-data=json.dumps(x)
-y = json.loads(x)
-if y["inputs"]:
-    inputs= y["inputs"]
-    inputsav=True
+try:
+    x=sys.stdin.readline()
+    data=json.dumps(x)
+    y = json.loads(x)
+
+    if y["inputs"]:
+        inputs= y["inputs"]
+        inputsav=True
+except: pass
 
 In1_ =False
 In2_ =False
