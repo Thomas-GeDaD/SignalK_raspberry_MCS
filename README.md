@@ -63,7 +63,7 @@ Data output:
 The sample rate should be not less then "number of sensors" x 1s = "sample rate"  
 
 ### Since the V 1.0.7 there is an additional option for "Offsets" of the DS18B20 Sensors. If you update the Plugin you must add a number like 0, else you get an error.  
-The "offstes" is sum to the incomming temperature value. Means if you get a 12,2°C from the Sensor and you set an offset of -1.25 you get an reult of 10,95°C.  
+The "offstes" is sum to the incomming temperature value. Means if you get a 12,2°C from the Sensor and you set an offset of -1.25 you get an result of 10,95°C.  
 
 
 
