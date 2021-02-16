@@ -97,9 +97,10 @@ You want to measure your boat speed with a paddle wheel. If your paddle wheel cr
 Don´t forget to save the plugin settings after changes. ;-)
 
 ## Todos
-- Add plugin intigration for speed (Hz) measurement through In1-In4
-- Add plugin intigration for switch states (Sensors etc.) from the IN1-IN4 to map to delta´s
-
+✓  Add plugin intigration for speed (Hz) measurement through In1-In4  
+✓  Add plugin intigration for switch states (Sensors etc.) from the IN1-IN4 to map to delta´s  
+- add further 1-wire sensors  
+- add support for aditional hardware for the MCS  
 
 
 ### Changelog:
