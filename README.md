@@ -1,7 +1,7 @@
 # SignalK_raspberry_MCS
 SignalK Plugin to provide MCS functionality to SignalK  
 
-The Plugin only works on Raspberry OS Jessy / Buster!!  
+The Plugin only works on Raspberry OS Buster / Bullseye!!  
 
 Attention: the postinstall.js scripts need sudo privilegs!
 
@@ -107,3 +107,4 @@ Don´t forget to save the plugin settings after changes. ;-)
 
 -1.0.6: Fix issue in readinputs if the inputs are empty. Fix childprocess kill in index after restart of the Plugin  
 -1.0.7: Add support for temperature offset of 1-wire devices / Bug fix in readinputs when no input is set.
+-1.0.8: delete onoff dependecies, testet with Bullseye
