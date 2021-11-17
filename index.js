@@ -13,7 +13,6 @@
  */
 
 const fs = require("fs")
-var Gpio = require("onoff").Gpio
 const { spawn } = require('child_process')
 
 var ttyinterfaces = []
