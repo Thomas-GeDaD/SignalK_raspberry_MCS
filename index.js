@@ -63,6 +63,7 @@ var speckeys_Input = [
 var error = []
 let plugin = {}
 let timerreadds18b20 = null
+let timercheckds18b20 = null
 var printerrors = "no errors or warnings"
 var infoinstall1 = ""
 var infoinstall2 =  "=> postinstall is done"
@@ -141,18 +142,22 @@ module.exports = function (app) {
   })
 
   //read 1-wire sensors
-  try {
-    fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
-      if (item.slice(0, 2) == 28) {
-        if (sensors== "no sensor conected"){
-          sensors=[]
+  
+  function checkds18b20(){
+   try {
+      fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
+        if (item.slice(0, 2) == 28) {
+          if (sensors== "no sensor conected"){
+            sensors=[]
+         }
+         sensors.push(item)
         }
-        sensors.push(item)
-      }
-    })
-  } catch {
-    app.error("1-wire devices are not reachable")
+      })
+    } catch {
+      app.error("1-wire devices are not reachable")
+    }
   }
+  timercheckds18b20 = setInterval(checkds18b20, 30000) //check in interval for new connected Sensors
 
   //Plugin shema
   plugin.schema = () => ({
@@ -326,6 +331,9 @@ module.exports = function (app) {
   plugin.stop = function () {
     if (timerreadds18b20) {
       clearInterval(timerreadds18b20)
+    }
+     if (timercheckds18b20) {
+      clearInterval(timercheckds18b20)
     }
     if (child1) {
       process.kill(child1.pid)
