@@ -146,7 +146,7 @@ module.exports = function (app) {
   function checkds18b20(){
    try {
       fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
-        if (item.slice(0, 2) == 28) {
+        if (item.slice(0, 2) == 28 || item.slice(0, 2) == 10 || item.slice(0, 2) == 22) {
           if (sensors== "no sensor conected"){
             sensors=[]
          }
@@ -194,7 +194,7 @@ module.exports = function (app) {
       },
       devices: {
         type: "array",
-        title: "1-Wire Sensors (DS18B20)",
+        title: "1-Wire Temperature Sensors (DS18B20, DS1820, DS18S20, DS1822)",
         items: {
           type: "object",
           properties: {
