@@ -20,6 +20,10 @@ After the Installation:
 ```sh
 sudo node $HOME/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js
 ```  
+-- For BBN Users, use instead:  
+```sh
+sudo node /home/signalk/.signalk/node_modules/signalk-raspberry-mcs/postinstall.js
+``` 
 (This script add the dt-overlays for CAN and NMEA0183 to the config.txt, adds the modules and installs and enable the 1-wire service and the autoshutdown service)  
 
 2. Restart your Pi!!!
