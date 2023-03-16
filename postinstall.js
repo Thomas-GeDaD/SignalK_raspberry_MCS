@@ -75,10 +75,6 @@ function sudoInstall() {
       `echo 'dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25' >> /boot/config.txt`
     )
   }
-  //install spi-bcm2835
-  if (data.indexOf("dtoverlay=spi-bcm2835-overlay") == -1) {
-    execconfig(`echo 'dtoverlay=spi-bcm2835-overlay' >> /boot/config.txt`)
-  }
   //add CAN0 device
   var can0 = fs.readdirSync("/etc/network/interfaces.d/")
   if (can0.includes("can0") == false) {
