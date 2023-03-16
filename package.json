@@ -4,7 +4,7 @@
   "description": "SignalK Plugin to provide MCS functionality to SignalK",
   "license": "MIT",
   "homepage": "https://github.com/Thomas-GeDaD/SignalK_raspberry_MCS/blob/master/README.md",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "main": "index.js",
   "keywords": [
     "signalk-node-server-plugin"
