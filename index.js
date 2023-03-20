@@ -99,11 +99,6 @@ module.exports = function (app) {
     ) {
       error.push("error dt-overlay mcp2515")
     }
-    if (data.indexOf("dtoverlay=spi-bcm2835-overlay"
-      ) == -1
-    ) {
-      error.push("error dt-overlay spi bcm2835")
-    }
     var can0 = fs.readdirSync("/etc/network/interfaces.d/")
     if (can0.includes("can0") == false) {
       error.push("error interfaces.d can0")
