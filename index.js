@@ -150,6 +150,7 @@ module.exports = function (app) {
       app.error("1-wire devices are not reachable")
     }
   }
+  checkds18b20()//start first run
   timercheckds18b20 = setInterval(checkds18b20, 30000) //check in interval for new connected Sensors
 
   //Plugin shema
