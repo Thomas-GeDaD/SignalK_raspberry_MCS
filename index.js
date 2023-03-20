@@ -140,11 +140,9 @@ module.exports = function (app) {
   
   function checkds18b20(){
    try {
+      sensors=[]
       fs.readdirSync("/sys/bus/w1/devices/").forEach((item) => {
         if (item.slice(0, 2) == 28 || item.slice(0, 2) == 10 || item.slice(0, 2) == 22) {
-          if (sensors== "no sensor conected"){
-            sensors=[]
-         }
          sensors.push(item)
         }
       })
