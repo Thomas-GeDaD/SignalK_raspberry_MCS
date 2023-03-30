@@ -82,6 +82,7 @@ function sudoInstall() {
       `echo '#physical can interfaces
 allow-hotplug can0
 iface can0 can static
+pre-up ip link set can0 type can restart-ms 100
 bitrate 250000
 down /sbin/ip link set $IFACE down
 up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
