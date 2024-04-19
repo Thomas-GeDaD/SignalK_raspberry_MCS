@@ -17,6 +17,7 @@
 const { execSync } = require("child_process")
 const fs = require("fs")
 var errorinst = false
+let configpath = "/boot/config.txt"
 
 sudoInstall()
 function sudoInstall() {
@@ -34,7 +35,11 @@ function sudoInstall() {
 
   }
 
-  var data = fs.readFileSync("/boot/config.txt", "utf8")
+  if (fs.existsSync("/boot/firmware")){
+    configpath="/boot/firmware/config.txt"
+  }
+
+  var data = fs.readFileSync(configpath, "utf8")
 
   //install 1 sc16is752 overlay
 
@@ -44,7 +49,7 @@ function sudoInstall() {
     ) == -1
   ) {
     execconfig(
-      `echo 'dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600' >> /boot/config.txt`
+      `echo 'dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600' >> ${configpath}`
     )
   }
   //install 2 sc16is752 overlay
@@ -54,7 +59,7 @@ function sudoInstall() {
     ) == -1
   ) {
     execconfig(
-      `echo 'dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600' >> /boot/config.txt`
+      `echo 'dtoverlay=sc16is752-i2c,int_pin=12,addr=0x49,xtal=14745600' >> ${configpath}`
     )
   }
   //install 3 sc16is752 overlay
@@ -63,7 +68,7 @@ function sudoInstall() {
     -1
   ) {
     execconfig(
-      `echo 'dtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600' >> /boot/config.txt`
+      `echo 'dtoverlay=sc16is752-i2c,int_pin=6,addr=0x48,xtal=14745600' >> ${configpath}`
     )
   }
   //install mcp2515 overlay
@@ -72,7 +77,7 @@ function sudoInstall() {
     -1
   ) {
     execconfig(
-      `echo 'dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25' >> /boot/config.txt`
+      `echo 'dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25' >> ${configpath}`
     )
   }
   //add CAN0 device
@@ -82,7 +87,6 @@ function sudoInstall() {
       `echo '#physical can interfaces
 allow-hotplug can0
 iface can0 can static
-pre-up ip link set can0 type can restart-ms 100
 bitrate 250000
 down /sbin/ip link set $IFACE down
 up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
@@ -91,7 +95,7 @@ up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
   //added i2c-dev to /etc/modules:
   var modules = fs.readFileSync("/etc/modules", "utf8")
   if (modules.includes("i2c_dev") == false) {
-    execconfig(`echo 'i2c_dev' >> /etc/modules`)
+    execconfig(`echo 'i2c-dev' >> /etc/modules`)
   }
   //added ds2482 to /etc/modules:
   if (modules.includes("ds2482") == false) {
@@ -132,7 +136,7 @@ WantedBy=multi-user.target" | tee /etc/systemd/system/mcsasd.service`
   }
 
 //install further dependencies: sudo apt-get install python3 idle3 pigpio python-pigpio python3-pigpio
-execconfig(`apt-get install python3 idle3 pigpio python-pigpio python3-pigpio -y`)
+execconfig(`apt-get install python3 idle3 pigpio python3-pigpio -y`)
 
 // enable pigpio systemctl enable pigpiod && sudo systemctl restart  pigpiod
 execconfig("systemctl enable pigpiod && sudo systemctl restart  pigpiod")
