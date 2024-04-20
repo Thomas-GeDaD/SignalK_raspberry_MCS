@@ -18,6 +18,7 @@ const { spawn } = require('child_process')
 var ttyinterfaces = []
 var sensors = ["no sensor conected"]
 let child1
+let configpath = "/boot/config.txt"
 
 //availible signalk-deltas
 var speckeys_owire = [
@@ -70,8 +71,11 @@ var infoinstall2 =  "=> postinstall is done"
 
 module.exports = function (app) {
   //check os entrys:
+  if (fs.existsSync("/boot/firmware")){
+    configpath="/boot/firmware/config.txt"
+  }
   function check_entrys() {
-    var data = fs.readFileSync("/boot/config.txt", "utf8")
+    var data = fs.readFileSync(configpath, "utf8")
     if (
       data.indexOf(
         "dtoverlay=sc16is752-i2c,int_pin=13,addr=0x4c,xtal=14745600"
@@ -195,6 +199,7 @@ module.exports = function (app) {
               type: "string",
               title: "Sensor Id",
               enum: sensors,
+              defaut: "no", //new
             },
             locationName: {
               type: "string",
@@ -207,6 +212,7 @@ module.exports = function (app) {
               description:
                 "This is used to build the path in Signal K.",
               enum: speckeys_owire,
+
             },
             offset: {
                 type: "string",
