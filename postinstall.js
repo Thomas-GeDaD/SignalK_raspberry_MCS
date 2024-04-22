@@ -136,7 +136,7 @@ WantedBy=multi-user.target" | tee /etc/systemd/system/mcsasd.service`
   }
 
 //install further dependencies: sudo apt-get install python3 idle3 pigpio python-pigpio python3-pigpio
-execconfig(`apt-get install python3 idle3 pigpio python3-pigpio -y`)
+execconfig(`apt install python3 idle3 pigpio python3-pigpio python3-gpiozero -y`)
 
 // enable pigpio systemctl enable pigpiod && sudo systemctl restart  pigpiod
 execconfig("systemctl enable pigpiod && sudo systemctl restart  pigpiod")
