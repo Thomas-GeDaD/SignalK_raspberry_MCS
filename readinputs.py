@@ -37,7 +37,7 @@ state= [
 class MeasureFrequency(object):
     
     def __init__(self, channel):
-        self.btn = Button(channel)
+        self.btn = Button(channel,pull_up=False)
         self.channel = channel
         self.pulse1 = 0
         self.pulsetime1=perf_counter()
@@ -116,7 +116,7 @@ if inputsav==True:
                 average1=MovingAverage(0.6)
             if In1["key"] in state:
                 In1task="state"
-                in1in=Button(19)
+                in1in=Button(19,pull_up=False)
                 
 
         ##conf input 2
@@ -130,7 +130,7 @@ if inputsav==True:
                 average2=MovingAverage(0.6)
             if In2["key"] in state:
                 In2task="state"
-                in2in=Button(16)
+                in2in=Button(16,pull_up=False)
                 
 
         ##conf input 3        
@@ -144,7 +144,7 @@ if inputsav==True:
                 average3=MovingAverage(0.6)
             if In3["key"] in state:
                 In3task="state"
-                in3in=Button(26)
+                in3in=Button(26,pull_up=False)
                 
 
          ##conf input 4       
@@ -158,7 +158,7 @@ if inputsav==True:
                 average4=MovingAverage(0.6)
             if In4["key"] in state:
                 In4task="state"
-                in4in=Button(20)
+                in4in=Button(20,pull_up=False)
                 
 
         count+=1
@@ -176,7 +176,7 @@ while True:
             values.append( {'path': In1["key"] , 'value': freq1_ } )
 
         if In1task=="state":
-            values.append( {'path': In1["key"] , 'value': not in1in.is_pressed })
+            values.append( {'path': In1["key"] , 'value': in1in.is_pressed })
 
     if In2_:
         if In2task=="freq":
@@ -188,7 +188,7 @@ while True:
             values.append( {'path': In2["key"] , 'value': freq2_ } )    
 
         if In2task=="state":
-            values.append( {'path': In2["key"] , 'value': not in2in.is_pressed })
+            values.append( {'path': In2["key"] , 'value': in2in.is_pressed })
 
     if In3_:
         if In3task=="freq":
@@ -200,7 +200,7 @@ while True:
             values.append( {'path': In3["key"] , 'value': freq3_ } )
 
         if In3task=="state":
-            values.append( {'path': In3["key"] , 'value': not in3in.is_pressed })
+            values.append( {'path': In3["key"] , 'value': in3in.is_pressed })
 
     if In4_:
         if In4task=="freq":
@@ -212,7 +212,7 @@ while True:
             values.append( {'path': In4["key"] , 'value': freq4_ } )
 
         if In4task=="state":
-            values.append( {'path': In4["key"] , 'value': not in4in.is_pressed })
+            values.append( {'path': In4["key"] , 'value': in4in.is_pressed })
 
     if values:
         signalkdata = {'updates': [{ 'values': values}]}
