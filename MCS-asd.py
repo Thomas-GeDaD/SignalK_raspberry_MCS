@@ -14,23 +14,22 @@
 # limitations under the License.
 
 
-import socket, time, random, os
-import RPi.GPIO as GPIO
+import time, os
+from gpiozero import Button
 
 # this file runs as a service in the background
 def main():
-	try:
-		#### GPIO Config
-		GPIO.setmode(GPIO.BCM)
-		GPIO.setup(5, GPIO.IN)
-		start=GPIO.input(5)
-		
-		if start ==1:
+	try: #### GPIO Config
+		#in5 = Button(5,pull_up=False)
+		in5 = Button(5,pull_up=False)
+		print(in5.is_pressed)
+		if in5.is_pressed:
 			while True:
-				if GPIO.input(5) == 0:
+				print("in while")
+				if not in5.is_pressed:
 					print ("shutdown in 2s")
 					time.sleep(2)
-					if GPIO.input(5) == 0:
+					if not in5.is_pressed:
 						os.system("sudo shutdown -h now") 
 						#os.system("sudo reboot")
 				time.sleep(2)
