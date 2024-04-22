@@ -14,8 +14,8 @@
  * limitations under the License.
 """
 
-import sys, json, threading, time, random, os , pigpio, socket, statistics
-import RPi.GPIO as GPIO
+import sys, json, time, statistics
+from gpiozero import Button
 from time import perf_counter
 ##frequence string:
 freq = [
@@ -37,7 +37,7 @@ state= [
 class MeasureFrequency(object):
     
     def __init__(self, channel):
-        GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        self.btn = Button(channel)
         self.channel = channel
         self.pulse1 = 0
         self.pulsetime1=perf_counter()
@@ -62,9 +62,7 @@ class MeasureFrequency(object):
         self.data=[]
         return freq
     def start(self):
-        GPIO.add_event_detect(self.channel, GPIO.RISING,
-                              callback=self._interrupt_counter,
-                              bouncetime=1)
+        self.btn.when_pressed = self._interrupt_counter
 
 class MovingAverage:
     def __init__(self,factor):
@@ -82,7 +80,7 @@ class MovingAverage:
 
 
 ## GPIO settings
-GPIO.setmode(GPIO.BCM)
+#GPIO.setmode(GPIO.BCM)
 
 #handle options
 inputsav=False
@@ -118,7 +116,8 @@ if inputsav==True:
                 average1=MovingAverage(0.6)
             if In1["key"] in state:
                 In1task="state"
-                GPIO.setup(19, GPIO.IN)
+                in1in=Button(19)
+                
 
         ##conf input 2
         if inputs_["inputID"]=="In2":
@@ -131,7 +130,8 @@ if inputsav==True:
                 average2=MovingAverage(0.6)
             if In2["key"] in state:
                 In2task="state"
-                GPIO.setup(16, GPIO.IN)
+                in2in=Button(16)
+                
 
         ##conf input 3        
         if inputs_["inputID"]=="In3":
@@ -144,7 +144,8 @@ if inputsav==True:
                 average3=MovingAverage(0.6)
             if In3["key"] in state:
                 In3task="state"
-                GPIO.setup(26, GPIO.IN)
+                in3in=Button(26)
+                
 
          ##conf input 4       
         if inputs_["inputID"]=="In4":
@@ -157,7 +158,8 @@ if inputsav==True:
                 average4=MovingAverage(0.6)
             if In4["key"] in state:
                 In4task="state"
-                GPIO.setup(20, GPIO.IN)
+                in4in=Button(20)
+                
 
         count+=1
 
@@ -174,7 +176,7 @@ while True:
             values.append( {'path': In1["key"] , 'value': freq1_ } )
 
         if In1task=="state":
-            values.append( {'path': In1["key"] , 'value': GPIO.input(19) })
+            values.append( {'path': In1["key"] , 'value': not in1in.is_pressed })
 
     if In2_:
         if In2task=="freq":
@@ -186,7 +188,7 @@ while True:
             values.append( {'path': In2["key"] , 'value': freq2_ } )    
 
         if In2task=="state":
-            values.append( {'path': In2["key"] , 'value': GPIO.input(16) })
+            values.append( {'path': In2["key"] , 'value': not in2in.is_pressed })
 
     if In3_:
         if In3task=="freq":
@@ -198,7 +200,7 @@ while True:
             values.append( {'path': In3["key"] , 'value': freq3_ } )
 
         if In3task=="state":
-            values.append( {'path': In3["key"] , 'value': GPIO.input(26) })
+            values.append( {'path': In3["key"] , 'value': not in3in.is_pressed })
 
     if In4_:
         if In4task=="freq":
@@ -210,7 +212,7 @@ while True:
             values.append( {'path': In4["key"] , 'value': freq4_ } )
 
         if In4task=="state":
-            values.append( {'path': In4["key"] , 'value': GPIO.input(20) })
+            values.append( {'path': In4["key"] , 'value': not in4in.is_pressed })
 
     if values:
         signalkdata = {'updates': [{ 'values': values}]}
