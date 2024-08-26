@@ -96,7 +96,7 @@ up /sbin/ifconfig $IFACE txqueuelen 10000' >> /etc/network/interfaces.d/can0`
   //added i2c-dev to /etc/modules:
   var modules = fs.readFileSync("/etc/modules", "utf8")
   if (modules.includes("i2c_dev") == false) {
-    execconfig(`echo 'i2c-dev' >> /etc/modules`)
+    execconfig(`echo 'i2c_dev' >> /etc/modules`)
   }
   //added ds2482 to /etc/modules:
   if (modules.includes("ds2482") == false) {
